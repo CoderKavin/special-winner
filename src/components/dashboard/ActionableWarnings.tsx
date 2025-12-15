@@ -54,7 +54,7 @@ export function ActionableWarnings({
   const warnings = useMemo(() => analyzeScheduleWarnings(state), [state]);
   const scenarios = useMemo(
     () => generateOptimizationScenarios(state, warnings),
-    [state, warnings]
+    [state, warnings],
   );
 
   const criticalWarnings = warnings.filter((w) => w.severity === "critical");
@@ -79,17 +79,17 @@ export function ActionableWarnings({
 
   if (warnings.length === 0) {
     return (
-      <Card className="bg-[var(--bg-surface)] border-[var(--border-subtle)] mb-6">
+      <Card className="bg-white dark:bg-surface border-slate-200 dark:border-border-subtle mb-6">
         <CardContent className="py-6">
           <div className="flex items-center gap-3 text-emerald-500">
             <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
               <Check className="h-5 w-5" />
             </div>
             <div>
-              <p className="font-medium text-[var(--text-primary)]">
+              <p className="font-medium text-slate-900 dark:text-text-primary">
                 Schedule looks good
               </p>
-              <p className="text-sm text-[var(--text-secondary)]">
+              <p className="text-sm text-slate-600 dark:text-text-secondary">
                 No issues detected
               </p>
             </div>
@@ -101,18 +101,18 @@ export function ActionableWarnings({
 
   return (
     <>
-      <Card className="bg-[var(--bg-surface)] border-[var(--border-subtle)] mb-6 overflow-hidden">
+      <Card className="bg-white dark:bg-surface border-slate-200 dark:border-border-subtle mb-6 overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-subtle)]">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 dark:border-border-subtle">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg">
               <AlertTriangle className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h3 className="font-semibold text-[var(--text-primary)]">
+              <h3 className="font-semibold text-slate-900 dark:text-text-primary">
                 Schedule Issues
               </h3>
-              <p className="text-sm text-[var(--text-secondary)]">
+              <p className="text-sm text-slate-600 dark:text-text-secondary">
                 {criticalWarnings.length > 0 && (
                   <span className="text-red-500">
                     {criticalWarnings.length} critical
@@ -134,7 +134,7 @@ export function ActionableWarnings({
                 variant="ghost"
                 size="sm"
                 onClick={onUndo}
-                className="text-[var(--text-secondary)]"
+                className="text-slate-600 dark:text-text-secondary"
               >
                 <Undo2 className="h-4 w-4 mr-1" />
                 Undo
@@ -175,7 +175,7 @@ export function ActionableWarnings({
 
         {/* Warnings List */}
         <CardContent className="p-0">
-          <div className="divide-y divide-[var(--border-subtle)]">
+          <div className="divide-y divide-slate-200 dark:divide-border-subtle">
             {/* Critical Warnings */}
             {criticalWarnings.map((warning) => (
               <WarningItem
@@ -184,7 +184,7 @@ export function ActionableWarnings({
                 expanded={expandedWarning === warning.id}
                 onToggle={() =>
                   setExpandedWarning(
-                    expandedWarning === warning.id ? null : warning.id
+                    expandedWarning === warning.id ? null : warning.id,
                   )
                 }
                 onApplyFix={handleApplyFix}
@@ -199,7 +199,7 @@ export function ActionableWarnings({
                 expanded={expandedWarning === warning.id}
                 onToggle={() =>
                   setExpandedWarning(
-                    expandedWarning === warning.id ? null : warning.id
+                    expandedWarning === warning.id ? null : warning.id,
                   )
                 }
                 onApplyFix={handleApplyFix}
@@ -208,8 +208,8 @@ export function ActionableWarnings({
 
             {/* Info Warnings (collapsed by default) */}
             {infoWarnings.length > 0 && (
-              <div className="p-4 bg-[var(--bg-surface-hover)]">
-                <p className="text-sm text-[var(--text-tertiary)]">
+              <div className="p-4 bg-slate-50 dark:bg-surface-hover">
+                <p className="text-sm text-slate-500 dark:text-text-tertiary">
                   {infoWarnings.length} optimization suggestion
                   {infoWarnings.length > 1 ? "s" : ""} available
                 </p>
@@ -300,12 +300,12 @@ function WarningItem({
       {/* Warning Header */}
       <button
         onClick={onToggle}
-        className="w-full p-4 flex items-center gap-4 hover:bg-[var(--bg-surface-hover)] transition-colors"
+        className="w-full p-4 flex items-center gap-4 hover:bg-slate-50 dark:hover:bg-surface-hover transition-colors"
       >
         <div
           className={cn(
             "w-10 h-10 rounded-lg flex items-center justify-center shrink-0",
-            colors.icon
+            colors.icon,
           )}
         >
           <span className={colors.text}>{getIcon()}</span>
@@ -313,7 +313,7 @@ function WarningItem({
 
         <div className="flex-1 text-left min-w-0">
           <div className="flex items-center gap-2">
-            <p className="font-medium text-[var(--text-primary)] truncate">
+            <p className="font-medium text-slate-900 dark:text-text-primary truncate">
               {warning.title}
             </p>
             {warning.severity === "critical" && (
@@ -322,7 +322,7 @@ function WarningItem({
               </span>
             )}
           </div>
-          <p className="text-sm text-[var(--text-secondary)] truncate">
+          <p className="text-sm text-slate-600 dark:text-text-secondary truncate">
             {warning.impact}
           </p>
         </div>
@@ -337,8 +337,8 @@ function WarningItem({
               onApplyFix(recommendedFix);
             }}
             className={cn(
-              "shrink-0 border-[var(--border-subtle)]",
-              "hover:border-emerald-500/50 hover:bg-emerald-500/10 hover:text-emerald-500"
+              "shrink-0 border-slate-200 dark:border-border-subtle",
+              "hover:border-emerald-500/50 hover:bg-emerald-500/10 hover:text-emerald-500",
             )}
           >
             <Zap className="h-3 w-3 mr-1" />
@@ -348,8 +348,8 @@ function WarningItem({
 
         <ChevronRight
           className={cn(
-            "h-5 w-5 text-[var(--text-tertiary)] transition-transform shrink-0",
-            expanded && "rotate-90"
+            "h-5 w-5 text-slate-400 dark:text-text-tertiary transition-transform shrink-0",
+            expanded && "rotate-90",
           )}
         />
       </button>
@@ -365,13 +365,13 @@ function WarningItem({
           >
             <div className="px-4 pb-4 space-y-3">
               {/* Description */}
-              <p className="text-sm text-[var(--text-secondary)] pl-14">
+              <p className="text-sm text-slate-600 dark:text-text-secondary pl-14">
                 {warning.description}
               </p>
 
               {/* Fix Options */}
               <div className="pl-14 space-y-2">
-                <p className="text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-wide">
+                <p className="text-xs font-medium text-slate-500 dark:text-text-tertiary uppercase tracking-wide">
                   Fix Options
                 </p>
                 {warning.fixes.map((fix) => (
@@ -426,7 +426,7 @@ function FixOption({ fix, onApply }: FixOptionProps) {
       case "high":
         return "text-red-500";
       default:
-        return "text-[var(--text-tertiary)]";
+        return "text-slate-500 dark:text-text-tertiary";
     }
   };
 
@@ -435,10 +435,10 @@ function FixOption({ fix, onApply }: FixOptionProps) {
       onClick={onApply}
       className={cn(
         "w-full p-3 rounded-lg text-left transition-all",
-        "bg-[var(--bg-surface-hover)] border border-[var(--border-subtle)]",
-        "hover:border-[var(--border-emphasis)] hover:shadow-md",
+        "bg-slate-50 dark:bg-surface-hover border border-slate-200 dark:border-border-subtle",
+        "hover:border-slate-300 dark:hover:border-border-emphasis hover:shadow-md",
         fix.recommended &&
-          "ring-2 ring-emerald-500/30 border-emerald-500/30 bg-emerald-500/5"
+          "ring-2 ring-emerald-500/30 border-emerald-500/30 bg-emerald-500/5",
       )}
     >
       <div className="flex items-center gap-3">
@@ -447,7 +447,7 @@ function FixOption({ fix, onApply }: FixOptionProps) {
             "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
             fix.recommended
               ? "bg-emerald-500/20 text-emerald-500"
-              : "bg-[var(--bg-surface)] text-[var(--text-secondary)]"
+              : "bg-white dark:bg-surface text-slate-600 dark:text-text-secondary",
           )}
         >
           {getIcon()}
@@ -455,7 +455,7 @@ function FixOption({ fix, onApply }: FixOptionProps) {
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <p className="font-medium text-[var(--text-primary)]">
+            <p className="font-medium text-slate-900 dark:text-text-primary">
               {fix.label}
             </p>
             {fix.recommended && (
@@ -464,23 +464,21 @@ function FixOption({ fix, onApply }: FixOptionProps) {
               </span>
             )}
           </div>
-          <p className="text-xs text-[var(--text-secondary)]">
+          <p className="text-xs text-slate-600 dark:text-text-secondary">
             {fix.description}
           </p>
         </div>
 
         <div className="text-right shrink-0">
-          <p className="text-xs font-medium text-[var(--text-primary)]">
+          <p className="text-xs font-medium text-slate-900 dark:text-text-primary">
             {fix.impact}
           </p>
           {fix.risk && (
-            <p className={cn("text-xs", getRiskColor())}>
-              {fix.risk} risk
-            </p>
+            <p className={cn("text-xs", getRiskColor())}>{fix.risk} risk</p>
           )}
         </div>
 
-        <ChevronRight className="h-4 w-4 text-[var(--text-tertiary)] shrink-0" />
+        <ChevronRight className="h-4 w-4 text-slate-400 dark:text-text-tertiary shrink-0" />
       </div>
     </button>
   );
@@ -515,27 +513,27 @@ function OptimizeModal({ scenarios, onApply, onClose }: OptimizeModalProps) {
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         className="fixed inset-0 z-50 flex items-center justify-center p-4"
       >
-        <div className="w-full max-w-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl shadow-2xl overflow-hidden">
+        <div className="w-full max-w-lg bg-white dark:bg-surface border border-slate-200 dark:border-border-subtle rounded-2xl shadow-2xl overflow-hidden">
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border-subtle)]">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-border-subtle">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center">
                 <Sparkles className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-text-primary">
                   Auto-Optimize Schedule
                 </h2>
-                <p className="text-sm text-[var(--text-secondary)]">
+                <p className="text-sm text-slate-600 dark:text-text-secondary">
                   Choose a fix strategy
                 </p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg hover:bg-[var(--bg-surface-hover)] transition-colors"
+              className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-surface-hover transition-colors"
             >
-              <X className="h-5 w-5 text-[var(--text-tertiary)]" />
+              <X className="h-5 w-5 text-slate-400 dark:text-text-tertiary" />
             </button>
           </div>
 
@@ -547,10 +545,10 @@ function OptimizeModal({ scenarios, onApply, onClose }: OptimizeModalProps) {
                 onClick={() => onApply(scenario)}
                 className={cn(
                   "w-full p-4 rounded-xl text-left transition-all",
-                  "bg-[var(--bg-surface-hover)] border border-[var(--border-subtle)]",
+                  "bg-slate-50 dark:bg-surface-hover border border-slate-200 dark:border-border-subtle",
                   "hover:border-violet-500/50 hover:shadow-lg",
                   scenario.recommended &&
-                    "ring-2 ring-violet-500/30 border-violet-500/30"
+                    "ring-2 ring-violet-500/30 border-violet-500/30",
                 )}
               >
                 <div className="flex items-start gap-3">
@@ -559,7 +557,7 @@ function OptimizeModal({ scenarios, onApply, onClose }: OptimizeModalProps) {
                       "w-10 h-10 rounded-lg flex items-center justify-center shrink-0",
                       scenario.recommended
                         ? "bg-violet-500/20 text-violet-500"
-                        : "bg-[var(--bg-surface)] text-[var(--text-secondary)]"
+                        : "bg-white dark:bg-surface text-slate-600 dark:text-text-secondary",
                     )}
                   >
                     {scenario.id === "extend-deadline" ? (
@@ -571,7 +569,7 @@ function OptimizeModal({ scenarios, onApply, onClose }: OptimizeModalProps) {
 
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <p className="font-semibold text-[var(--text-primary)]">
+                      <p className="font-semibold text-slate-900 dark:text-text-primary">
                         {scenario.name}
                       </p>
                       {scenario.recommended && (
@@ -580,14 +578,14 @@ function OptimizeModal({ scenarios, onApply, onClose }: OptimizeModalProps) {
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-[var(--text-secondary)] mt-1">
+                    <p className="text-sm text-slate-600 dark:text-text-secondary mt-1">
                       {scenario.description}
                     </p>
                     <div className="flex flex-wrap gap-2 mt-2">
                       {scenario.tradeoffs.map((tradeoff, i) => (
                         <span
                           key={i}
-                          className="px-2 py-1 text-xs bg-[var(--bg-surface)] text-[var(--text-tertiary)] rounded"
+                          className="px-2 py-1 text-xs bg-white dark:bg-surface text-slate-500 dark:text-text-tertiary rounded"
                         >
                           {tradeoff}
                         </span>
@@ -595,14 +593,14 @@ function OptimizeModal({ scenarios, onApply, onClose }: OptimizeModalProps) {
                     </div>
                   </div>
 
-                  <ChevronRight className="h-5 w-5 text-[var(--text-tertiary)] shrink-0 mt-2" />
+                  <ChevronRight className="h-5 w-5 text-slate-400 dark:text-text-tertiary shrink-0 mt-2" />
                 </div>
               </button>
             ))}
           </div>
 
           {/* Footer */}
-          <div className="px-6 py-4 border-t border-[var(--border-subtle)] bg-[var(--bg-surface-hover)]">
+          <div className="px-6 py-4 border-t border-slate-200 dark:border-border-subtle bg-slate-50 dark:bg-surface-hover">
             <Button variant="ghost" onClick={onClose} className="w-full">
               Cancel
             </Button>
