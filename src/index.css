@@ -1,14 +1,14 @@
 @import "tailwindcss";
 
 /* ============================================
-   LINEAR-INSPIRED DESIGN SYSTEM
+   LINEAR-INSPIRED DESIGN SYSTEM WITH LIGHT MODE
    ============================================ */
 
 /* Import Inter and JetBrains Mono fonts */
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
 
 @theme {
-    /* ========== BASE COLORS ========== */
+    /* ========== DARK MODE BASE COLORS ========== */
     --color-background: #0d0e11;
     --color-surface: #16181d;
     --color-surface-hover: #1c1e24;
@@ -24,7 +24,7 @@
     --color-critical: #e5484d;
     --color-info: #4c9aff;
 
-    /* ========== TEXT COLORS ========== */
+    /* ========== DARK MODE TEXT COLORS ========== */
     --color-text-primary: #e6e8eb;
     --color-text-secondary: #9ba1a6;
     --color-text-tertiary: #5e6772;
@@ -91,66 +91,152 @@ html {
     text-rendering: optimizeLegibility;
 }
 
-body {
-    background-color: var(--color-background);
-    color: var(--color-text-primary);
-    font-family: var(--font-sans);
-    font-size: 14px;
-    line-height: 1.5;
-    margin: 0;
-    padding: 0;
+/* ============================================
+   DARK MODE (Default)
+   ============================================ */
+
+:root,
+.dark {
+    --bg-background: #0d0e11;
+    --bg-surface: #16181d;
+    --bg-surface-hover: #1c1e24;
+    --border-subtle: #2b2d31;
+    --border-emphasis: #3f4248;
+    --text-primary: #e6e8eb;
+    --text-secondary: #9ba1a6;
+    --text-tertiary: #5e6772;
+    --text-disabled: #3f4248;
+    color-scheme: dark;
+}
+
+.dark body {
+    background-color: #0d0e11;
+    color: #e6e8eb;
 }
 
 /* ============================================
-   TYPOGRAPHY CLASSES
+   LIGHT MODE
+   ============================================ */
+
+.light {
+    --bg-background: #f8fafc;
+    --bg-surface: #ffffff;
+    --bg-surface-hover: #f1f5f9;
+    --border-subtle: #e2e8f0;
+    --border-emphasis: #cbd5e1;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-tertiary: #94a3b8;
+    --text-disabled: #cbd5e1;
+    color-scheme: light;
+}
+
+.light body {
+    background-color: #f8fafc;
+    color: #0f172a;
+}
+
+/* Light mode specific component overrides */
+.light {
+    /* Background overrides */
+    --color-background: #f8fafc;
+    --color-surface: #ffffff;
+    --color-surface-hover: #f1f5f9;
+
+    /* Border overrides */
+    --color-border-subtle: #e2e8f0;
+    --color-border-emphasis: #cbd5e1;
+    --color-border: #e2e8f0;
+    --color-input: #e2e8f0;
+
+    /* Text overrides */
+    --color-text-primary: #0f172a;
+    --color-text-secondary: #475569;
+    --color-text-tertiary: #94a3b8;
+    --color-text-disabled: #cbd5e1;
+    --color-foreground: #0f172a;
+
+    /* Component overrides */
+    --color-secondary: #f1f5f9;
+    --color-secondary-foreground: #0f172a;
+    --color-muted: #f1f5f9;
+    --color-muted-foreground: #475569;
+    --color-popover: #ffffff;
+    --color-popover-foreground: #0f172a;
+    --color-card: #ffffff;
+    --color-card-foreground: #0f172a;
+
+    /* Shadow overrides for light mode */
+    --shadow-1: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-2: 0 4px 6px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.03);
+    --shadow-3: 0 10px 15px rgba(0, 0, 0, 0.08), 0 4px 6px rgba(0, 0, 0, 0.04);
+    --shadow-4: 0 20px 25px rgba(0, 0, 0, 0.1), 0 8px 10px rgba(0, 0, 0, 0.04);
+    --shadow-5: 0 25px 50px rgba(0, 0, 0, 0.12);
+}
+
+body {
+    background-color: var(--bg-background);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+/* ============================================
+   TYPOGRAPHY CLASSES - LARGER SIZES
    ============================================ */
 
 .text-display {
-    font-size: 32px;
+    font-size: 36px;
     font-weight: 700;
     letter-spacing: -0.02em;
     line-height: 1.2;
 }
 
 .text-h1 {
-    font-size: 24px;
+    font-size: 28px;
     font-weight: 600;
     letter-spacing: -0.01em;
-    line-height: 1.2;
+    line-height: 1.25;
 }
 
 .text-h2 {
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 600;
-    line-height: 1.2;
+    line-height: 1.3;
 }
 
 .text-h3 {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 600;
-    line-height: 1.2;
+    line-height: 1.35;
 }
 
 .text-body-lg {
-    font-size: 15px;
+    font-size: 17px;
     font-weight: 400;
-    line-height: 1.5;
+    line-height: 1.6;
 }
 
 .text-body {
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.6;
+}
+
+.text-body-sm {
     font-size: 14px;
     font-weight: 400;
     line-height: 1.5;
 }
 
-.text-body-sm {
-    font-size: 13px;
-    font-weight: 400;
-    line-height: 1.5;
-}
-
 .text-caption {
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 500;
     letter-spacing: 0.01em;
     line-height: 1.5;
@@ -165,27 +251,45 @@ body {
    ============================================ */
 
 ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 10px;
+    height: 10px;
 }
 
-::-webkit-scrollbar-track {
+.dark ::-webkit-scrollbar-track {
     background: var(--color-background);
 }
 
-::-webkit-scrollbar-thumb {
-    background: var(--color-border-emphasis);
-    border-radius: 4px;
+.light ::-webkit-scrollbar-track {
+    background: #f1f5f9;
 }
 
-::-webkit-scrollbar-thumb:hover {
+.dark ::-webkit-scrollbar-thumb {
+    background: var(--color-border-emphasis);
+    border-radius: 5px;
+}
+
+.light ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 5px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
     background: var(--color-text-tertiary);
 }
 
+.light ::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
 /* Firefox scrollbar */
-* {
+.dark * {
     scrollbar-width: thin;
     scrollbar-color: var(--color-border-emphasis) var(--color-background);
+}
+
+.light * {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f1f5f9;
 }
 
 /* ============================================
@@ -203,7 +307,7 @@ body {
 
 ::selection {
     background-color: rgba(94, 106, 210, 0.3);
-    color: var(--color-text-primary);
+    color: var(--text-primary);
 }
 
 /* ============================================
@@ -257,9 +361,9 @@ body {
 .animate-shimmer {
     background: linear-gradient(
         90deg,
-        var(--color-surface) 0%,
-        var(--color-surface-hover) 50%,
-        var(--color-surface) 100%
+        var(--bg-surface) 0%,
+        var(--bg-surface-hover) 50%,
+        var(--bg-surface) 100%
     );
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
@@ -283,33 +387,33 @@ body {
 
 /* Surface variants */
 .bg-surface {
-    background-color: var(--color-surface);
+    background-color: var(--bg-surface);
 }
 
 .bg-surface-hover {
-    background-color: var(--color-surface-hover);
+    background-color: var(--bg-surface-hover);
 }
 
 /* Border variants */
 .border-subtle {
-    border-color: var(--color-border-subtle);
+    border-color: var(--border-subtle);
 }
 
 .border-emphasis {
-    border-color: var(--color-border-emphasis);
+    border-color: var(--border-emphasis);
 }
 
 /* Text variants */
 .text-primary {
-    color: var(--color-text-primary);
+    color: var(--text-primary);
 }
 
 .text-secondary {
-    color: var(--color-text-secondary);
+    color: var(--text-secondary);
 }
 
 .text-tertiary {
-    color: var(--color-text-tertiary);
+    color: var(--text-tertiary);
 }
 
 /* Subject color utilities */
@@ -351,6 +455,63 @@ body {
 
 .text-subject {
     color: var(--subject-color);
+}
+
+/* ============================================
+   LIGHT MODE COMPONENT OVERRIDES
+   ============================================ */
+
+/* Cards and surfaces in light mode */
+.light .bg-background {
+    background-color: #f8fafc;
+}
+
+.light .bg-surface {
+    background-color: #ffffff;
+}
+
+.light .bg-surface-hover {
+    background-color: #f1f5f9;
+}
+
+/* Borders in light mode */
+.light .border-border-subtle,
+.light .border-subtle {
+    border-color: #e2e8f0;
+}
+
+.light .border-border,
+.light .border-emphasis {
+    border-color: #cbd5e1;
+}
+
+/* Text in light mode */
+.light .text-text-primary {
+    color: #0f172a;
+}
+
+.light .text-text-secondary {
+    color: #475569;
+}
+
+.light .text-text-tertiary {
+    color: #94a3b8;
+}
+
+.light .text-foreground {
+    color: #0f172a;
+}
+
+/* Header in light mode */
+.light header {
+    background-color: rgba(255, 255, 255, 0.9);
+    border-color: #e2e8f0;
+}
+
+/* Card overrides for light mode */
+.light .card,
+.light [class*="bg-surface"] {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 /* ============================================

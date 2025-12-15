@@ -24,21 +24,21 @@ export function WeeklyHoursWidget({ state }: WeeklyHoursWidgetProps) {
   };
 
   return (
-    <Card className="bg-surface border-border-subtle">
-      <CardContent className="pt-4 pb-4">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-caption text-text-secondary uppercase tracking-wide">
+    <Card className="bg-white dark:bg-surface border-slate-200 dark:border-border-subtle">
+      <CardContent className="pt-5 pb-5">
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-sm font-semibold text-slate-500 dark:text-text-secondary uppercase tracking-wide">
             This Week's Progress
           </span>
-          <Clock className="h-4 w-4 text-text-tertiary" />
+          <Clock className="h-5 w-5 text-slate-400 dark:text-text-tertiary" />
         </div>
 
         {/* Hours display */}
-        <div className="flex items-baseline gap-2 mb-3">
-          <span className="text-display font-bold text-text-primary font-mono">
+        <div className="flex items-baseline gap-2 mb-4">
+          <span className="text-4xl font-bold text-slate-900 dark:text-text-primary font-mono">
             {stats.loggedHours.toFixed(1)}
           </span>
-          <span className="text-body-sm text-text-tertiary">
+          <span className="text-base text-slate-500 dark:text-text-tertiary">
             / {stats.plannedHours} hrs
           </span>
         </div>
@@ -48,26 +48,28 @@ export function WeeklyHoursWidget({ state }: WeeklyHoursWidgetProps) {
           value={progressPercentage}
           variant={getProgressVariant()}
           size="default"
-          className="mb-3"
+          className="mb-4 h-3"
         />
 
         {/* Stats row */}
-        <div className="flex items-center justify-between text-caption">
+        <div className="flex items-center justify-between text-sm">
           <div className="flex items-center gap-2">
-            <Calendar className="h-3 w-3 text-text-tertiary" />
-            <span className="text-text-secondary">
+            <Calendar className="h-4 w-4 text-slate-400 dark:text-text-tertiary" />
+            <span className="text-slate-600 dark:text-text-secondary">
               {stats.sessionsThisWeek} session
               {stats.sessionsThisWeek !== 1 ? "s" : ""} logged
             </span>
           </div>
 
           {stats.loggedToday ? (
-            <div className="flex items-center gap-1 text-success">
-              <CheckCircle2 className="h-3 w-3" />
+            <div className="flex items-center gap-1.5 text-success font-medium">
+              <CheckCircle2 className="h-4 w-4" />
               <span>Active today</span>
             </div>
           ) : (
-            <span className="text-text-tertiary">No activity today</span>
+            <span className="text-slate-500 dark:text-text-tertiary">
+              No activity today
+            </span>
           )}
         </div>
       </CardContent>

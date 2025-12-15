@@ -6,31 +6,39 @@ import { cn } from "../../lib/utils";
 const badgeVariants = cva(
   [
     "inline-flex items-center justify-center",
-    "font-medium",
-    "transition-colors duration-fast",
+    "font-semibold",
+    "transition-colors duration-150",
   ].join(" "),
   {
     variants: {
       variant: {
-        default: "bg-primary/20 text-primary border border-primary/30",
-        secondary: "bg-surface text-text-secondary border border-border-subtle",
+        default: "bg-primary/15 text-primary border border-primary/25",
+        secondary:
+          "bg-slate-100 dark:bg-surface text-slate-600 dark:text-text-secondary border border-slate-200 dark:border-border-subtle",
         outline:
-          "bg-transparent text-text-secondary border border-border-emphasis",
-        success: "bg-success/20 text-success border border-success/30",
-        warning: "bg-warning/20 text-warning border border-warning/30",
-        error: "bg-critical/20 text-critical border border-critical/30",
-        info: "bg-info/20 text-info border border-info/30",
+          "bg-transparent text-slate-600 dark:text-text-secondary border border-slate-300 dark:border-border-emphasis",
+        success:
+          "bg-emerald-50 dark:bg-success/15 text-emerald-700 dark:text-success border border-emerald-200 dark:border-success/25",
+        warning:
+          "bg-amber-50 dark:bg-warning/15 text-amber-700 dark:text-warning border border-amber-200 dark:border-warning/25",
+        error:
+          "bg-red-50 dark:bg-critical/15 text-red-700 dark:text-critical border border-red-200 dark:border-critical/25",
+        info: "bg-blue-50 dark:bg-info/15 text-blue-700 dark:text-info border border-blue-200 dark:border-info/25",
         // Subject variants
-        math: "bg-math/20 text-math border border-math/30",
-        physics: "bg-physics/20 text-physics border border-physics/30",
-        economics: "bg-economics/20 text-economics border border-economics/30",
-        english: "bg-english/20 text-english border border-english/30",
-        history: "bg-history/20 text-history border border-history/30",
+        math: "bg-blue-50 dark:bg-math/15 text-blue-700 dark:text-math border border-blue-200 dark:border-math/25",
+        physics:
+          "bg-purple-50 dark:bg-physics/15 text-purple-700 dark:text-physics border border-purple-200 dark:border-physics/25",
+        economics:
+          "bg-emerald-50 dark:bg-economics/15 text-emerald-700 dark:text-economics border border-emerald-200 dark:border-economics/25",
+        english:
+          "bg-orange-50 dark:bg-english/15 text-orange-700 dark:text-english border border-orange-200 dark:border-english/25",
+        history:
+          "bg-red-50 dark:bg-history/15 text-red-700 dark:text-history border border-red-200 dark:border-history/25",
       },
       size: {
-        sm: "px-1.5 py-0.5 text-[11px] rounded",
-        default: "px-2 py-0.5 text-xs rounded",
-        lg: "px-2.5 py-1 text-xs rounded-md",
+        sm: "px-2 py-0.5 text-xs rounded",
+        default: "px-2.5 py-1 text-xs rounded-md",
+        lg: "px-3 py-1.5 text-sm rounded-md",
       },
     },
     defaultVariants: {
@@ -68,9 +76,9 @@ function StatusDot({
   className,
 }: StatusDotProps) {
   const sizeClasses = {
-    sm: "w-1.5 h-1.5",
-    default: "w-2 h-2",
-    lg: "w-2.5 h-2.5",
+    sm: "w-2 h-2",
+    default: "w-2.5 h-2.5",
+    lg: "w-3 h-3",
   };
 
   const colorClasses = {
@@ -78,7 +86,7 @@ function StatusDot({
     warning: "bg-warning",
     error: "bg-critical",
     info: "bg-info",
-    neutral: "bg-text-tertiary",
+    neutral: "bg-slate-400 dark:bg-text-tertiary",
   };
 
   return (

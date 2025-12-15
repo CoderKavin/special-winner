@@ -90,29 +90,29 @@ export function ProgressSummary({ state }: ProgressSummaryProps) {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
       {/* Overall Progress */}
-      <Card className="bg-surface border-border-subtle">
-        <CardContent className="pt-4 pb-4">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-caption text-text-secondary uppercase tracking-wide">
+      <Card className="bg-white dark:bg-surface border-slate-200 dark:border-border-subtle">
+        <CardContent className="pt-5 pb-5">
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-sm font-semibold text-slate-500 dark:text-text-secondary uppercase tracking-wide">
               Overall Progress
             </span>
-            <Target className="h-4 w-4 text-text-tertiary" />
+            <Target className="h-5 w-5 text-slate-400 dark:text-text-tertiary" />
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-5">
             <ProgressRing
               value={stats.progressPercentage}
-              size={56}
-              strokeWidth={5}
+              size={72}
+              strokeWidth={6}
               color="#5E6AD2"
               showLabel={false}
             />
             <div>
-              <div className="text-display font-bold text-text-primary">
+              <div className="text-4xl font-bold text-slate-900 dark:text-text-primary">
                 {stats.progressPercentage}%
               </div>
-              <div className="text-caption text-text-tertiary">
+              <div className="text-sm text-slate-500 dark:text-text-tertiary mt-1">
                 {stats.completedMilestones}/{stats.totalMilestones} milestones
               </div>
             </div>
@@ -121,26 +121,28 @@ export function ProgressSummary({ state }: ProgressSummaryProps) {
       </Card>
 
       {/* IA Status */}
-      <Card className="bg-surface border-border-subtle">
-        <CardContent className="pt-4 pb-4">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-caption text-text-secondary uppercase tracking-wide">
+      <Card className="bg-white dark:bg-surface border-slate-200 dark:border-border-subtle">
+        <CardContent className="pt-5 pb-5">
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-sm font-semibold text-slate-500 dark:text-text-secondary uppercase tracking-wide">
               IAs Status
             </span>
-            <CheckCircle2 className="h-4 w-4 text-text-tertiary" />
+            <CheckCircle2 className="h-5 w-5 text-slate-400 dark:text-text-tertiary" />
           </div>
-          <div className="text-display font-bold text-text-primary mb-2">
+          <div className="text-4xl font-bold text-slate-900 dark:text-text-primary mb-3">
             {stats.completed}
-            <span className="text-text-tertiary">/{state.ias.length}</span>
+            <span className="text-slate-400 dark:text-text-tertiary">
+              /{state.ias.length}
+            </span>
           </div>
-          <div className="flex gap-2">
-            <Badge variant="success" size="sm">
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="success" size="lg">
               {stats.completed} Done
             </Badge>
-            <Badge variant="warning" size="sm">
+            <Badge variant="warning" size="lg">
               {stats.inProgress} Active
             </Badge>
-            <Badge variant="secondary" size="sm">
+            <Badge variant="secondary" size="lg">
               {stats.notStarted} Pending
             </Badge>
           </div>
@@ -148,43 +150,43 @@ export function ProgressSummary({ state }: ProgressSummaryProps) {
       </Card>
 
       {/* Days Until Deadline */}
-      <Card className="bg-surface border-border-subtle">
-        <CardContent className="pt-4 pb-4">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-caption text-text-secondary uppercase tracking-wide">
+      <Card className="bg-white dark:bg-surface border-slate-200 dark:border-border-subtle">
+        <CardContent className="pt-5 pb-5">
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-sm font-semibold text-slate-500 dark:text-text-secondary uppercase tracking-wide">
               Master Deadline
             </span>
-            <Calendar className="h-4 w-4 text-text-tertiary" />
+            <Calendar className="h-5 w-5 text-slate-400 dark:text-text-tertiary" />
           </div>
-          <div
-            className={`text-display font-bold font-mono ${getDaysLeftColor()}`}
-          >
+          <div className={`text-4xl font-bold font-mono ${getDaysLeftColor()}`}>
             {stats.daysLeft > 0 ? stats.daysLeft : 0}
           </div>
-          <p className="text-body-sm text-text-secondary">
+          <p className="text-base text-slate-600 dark:text-text-secondary mt-1">
             {stats.daysLeft > 0 ? "days remaining" : "Deadline passed!"}
           </p>
-          <p className="text-caption text-text-tertiary mt-1">
+          <p className="text-sm text-slate-500 dark:text-text-tertiary mt-2">
             {formatDate(state.masterDeadline)}
           </p>
         </CardContent>
       </Card>
 
       {/* This Week's Tasks */}
-      <Card className="bg-surface border-border-subtle">
-        <CardContent className="pt-4 pb-4">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-caption text-text-secondary uppercase tracking-wide">
+      <Card className="bg-white dark:bg-surface border-slate-200 dark:border-border-subtle">
+        <CardContent className="pt-5 pb-5">
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-sm font-semibold text-slate-500 dark:text-text-secondary uppercase tracking-wide">
               This Week
             </span>
-            <Clock className="h-4 w-4 text-text-tertiary" />
+            <Clock className="h-5 w-5 text-slate-400 dark:text-text-tertiary" />
           </div>
-          <div className="text-display font-bold text-text-primary font-mono">
+          <div className="text-4xl font-bold text-slate-900 dark:text-text-primary font-mono">
             {stats.thisWeekTasks.length}
           </div>
-          <p className="text-body-sm text-text-secondary">tasks due</p>
+          <p className="text-base text-slate-600 dark:text-text-secondary mt-1">
+            tasks due
+          </p>
           {stats.thisWeekTasks.length > 0 && (
-            <p className="text-caption text-text-tertiary mt-1 truncate">
+            <p className="text-sm text-slate-500 dark:text-text-tertiary mt-2 truncate">
               Next: {stats.thisWeekTasks[0].milestone_name}
             </p>
           )}

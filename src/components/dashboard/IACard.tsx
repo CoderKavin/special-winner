@@ -102,46 +102,50 @@ export function IACard({
       <Card
         className={cn(
           "relative overflow-hidden cursor-pointer",
-          "bg-surface border-border-subtle",
-          "hover:border-border-emphasis hover:shadow-card-hover",
-          "transition-all duration-medium",
+          "bg-white dark:bg-surface",
+          "border-slate-200 dark:border-border-subtle",
+          "hover:border-slate-300 dark:hover:border-border-emphasis hover:shadow-lg dark:hover:shadow-card-hover",
+          "transition-all duration-200",
           // Subject color left border
-          "border-l-[3px]",
+          "border-l-4",
           subjectStyles.border,
           isOverdue && "border-l-critical",
         )}
         onClick={onClick}
       >
         {/* Status indicator dot */}
-        <div className="absolute top-4 right-4">
+        <div className="absolute top-5 right-5">
           <StatusDot
             status={
               getStatusDot() as "success" | "warning" | "error" | "neutral"
             }
+            size="lg"
           />
         </div>
 
-        <CardHeader className="pb-2 pr-10">
-          <div className="flex items-start gap-2">
+        <CardHeader className="pb-3 pr-12">
+          <div className="flex items-start gap-3">
             <FileText
-              className={cn("h-4 w-4 mt-0.5 shrink-0", subjectStyles.text)}
+              className={cn("h-5 w-5 mt-0.5 shrink-0", subjectStyles.text)}
             />
             <div className="flex-1 min-w-0">
-              <CardTitle className="text-body-lg font-semibold text-text-primary truncate">
+              <CardTitle className="text-lg font-semibold text-slate-900 dark:text-text-primary truncate">
                 {ia.name}
               </CardTitle>
-              <p className="text-caption text-text-tertiary mt-0.5">
+              <p className="text-sm text-slate-500 dark:text-text-tertiary mt-1">
                 {ia.type}
               </p>
             </div>
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-4">
           {/* Word count */}
-          <div className="flex items-center justify-between text-body-sm">
-            <span className="text-text-secondary">Word Count</span>
-            <span className="font-medium text-text-primary font-mono">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-slate-600 dark:text-text-secondary">
+              Word Count
+            </span>
+            <span className="text-base font-semibold text-slate-900 dark:text-text-primary font-mono">
               {ia.wordCount.toLocaleString()}
             </span>
           </div>
@@ -150,19 +154,24 @@ export function IACard({
           {hasMilestones ? (
             <>
               <div className="space-y-2">
-                <div className="flex items-center justify-between text-body-sm">
-                  <span className="text-text-secondary">Progress</span>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-slate-600 dark:text-text-secondary">
+                    Progress
+                  </span>
                   <span
-                    className={cn("font-medium font-mono", subjectStyles.text)}
+                    className={cn(
+                      "text-lg font-bold font-mono",
+                      subjectStyles.text,
+                    )}
                   >
                     {progress}%
                   </span>
                 </div>
                 <Progress
                   value={progress}
-                  size="sm"
-                  className="bg-white/5"
-                  indicatorClassName={cn(subjectStyles.progress, "opacity-80")}
+                  size="default"
+                  className="bg-slate-100 dark:bg-white/5"
+                  indicatorClassName={cn(subjectStyles.progress, "opacity-90")}
                 />
               </div>
 
@@ -170,35 +179,39 @@ export function IACard({
               {nextMilestone && (
                 <div
                   className={cn(
-                    "p-3 rounded-md",
+                    "p-4 rounded-lg",
                     isOverdue
-                      ? "bg-critical/10 border border-critical/20"
-                      : "bg-surface-hover border border-border-subtle",
+                      ? "bg-red-50 dark:bg-critical/10 border border-red-200 dark:border-critical/20"
+                      : "bg-slate-50 dark:bg-surface-hover border border-slate-200 dark:border-border-subtle",
                   )}
                 >
-                  <div className="flex items-center gap-2 text-body-sm">
+                  <div className="flex items-center gap-2">
                     {isOverdue ? (
-                      <AlertCircle className="h-3.5 w-3.5 text-critical shrink-0" />
+                      <AlertCircle className="h-4 w-4 text-critical shrink-0" />
                     ) : (
-                      <Clock className="h-3.5 w-3.5 text-text-tertiary shrink-0" />
+                      <Clock className="h-4 w-4 text-slate-400 dark:text-text-tertiary shrink-0" />
                     )}
                     <span
                       className={cn(
-                        "font-medium truncate",
-                        isOverdue ? "text-critical" : "text-text-primary",
+                        "text-sm font-semibold truncate",
+                        isOverdue
+                          ? "text-critical"
+                          : "text-slate-900 dark:text-text-primary",
                       )}
                     >
                       {nextMilestone.milestone_name}
                     </span>
                   </div>
-                  <div className="mt-1.5 flex items-center justify-between text-caption">
-                    <span className="text-text-tertiary">
+                  <div className="mt-2 flex items-center justify-between text-sm">
+                    <span className="text-slate-500 dark:text-text-tertiary">
                       Due {formatShortDate(nextMilestone.deadline)}
                     </span>
                     <span
                       className={cn(
-                        "font-mono",
-                        isOverdue ? "text-critical" : "text-text-secondary",
+                        "font-mono font-semibold",
+                        isOverdue
+                          ? "text-critical"
+                          : "text-slate-700 dark:text-text-secondary",
                       )}
                     >
                       {daysUntilText(nextMilestone.deadline)}
@@ -211,7 +224,7 @@ export function IACard({
             /* Generate plan button */
             <Button
               variant="outline"
-              className="w-full"
+              className="w-full h-11"
               onClick={(e) => {
                 e.stopPropagation();
                 onGeneratePlan();
@@ -226,9 +239,9 @@ export function IACard({
 
           {/* View details hint */}
           {hasMilestones && (
-            <div className="flex items-center justify-end text-caption text-text-tertiary group-hover:text-text-secondary transition-colors">
+            <div className="flex items-center justify-end text-sm text-slate-500 dark:text-text-tertiary hover:text-slate-700 dark:hover:text-text-secondary transition-colors">
               <span>View details</span>
-              <ChevronRight className="h-3 w-3 ml-0.5" />
+              <ChevronRight className="h-4 w-4 ml-1" />
             </div>
           )}
         </CardContent>

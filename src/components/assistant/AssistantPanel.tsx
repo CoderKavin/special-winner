@@ -17,6 +17,9 @@ import {
   ChevronDown,
   Sparkles,
   MessageSquare,
+  Maximize2,
+  Minimize2,
+  Eye,
 } from "lucide-react";
 import type { ConversationMessage } from "../../types";
 
@@ -39,12 +42,12 @@ function MessageBubble({ message }: MessageBubbleProps) {
       exit={{ opacity: 0, y: -10 }}
       transition={{ duration: 0.15 }}
       className={cn(
-        "flex gap-3 p-3 rounded-lg",
+        "flex gap-3 p-3 rounded-xl",
         isUser
-          ? "bg-primary/10 border border-primary/20 ml-8"
+          ? "bg-primary/10 dark:bg-primary/10 border border-primary/20 ml-8"
           : isSystem
-            ? "bg-warning/10 border border-warning/20"
-            : "bg-surface-hover border border-border-subtle mr-8",
+            ? "bg-amber-50 dark:bg-warning/10 border border-amber-200 dark:border-warning/20"
+            : "bg-slate-50 dark:bg-surface-hover border border-slate-200 dark:border-border-subtle mr-8",
       )}
     >
       {/* Avatar */}
@@ -70,17 +73,17 @@ function MessageBubble({ message }: MessageBubbleProps) {
       {/* Content */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
-          <span className="text-caption font-medium text-text-secondary">
+          <span className="text-xs font-semibold text-slate-600 dark:text-text-secondary">
             {isUser ? "You" : isSystem ? "System" : "Assistant"}
           </span>
-          <span className="text-caption text-text-tertiary">
+          <span className="text-xs text-slate-400 dark:text-text-tertiary">
             {new Date(message.timestamp).toLocaleTimeString([], {
               hour: "2-digit",
               minute: "2-digit",
             })}
           </span>
         </div>
-        <div className="text-body-sm text-text-primary whitespace-pre-wrap">
+        <div className="text-sm text-slate-800 dark:text-text-primary whitespace-pre-wrap leading-relaxed">
           <MessageContent content={message.content} />
         </div>
 
@@ -91,7 +94,7 @@ function MessageBubble({ message }: MessageBubbleProps) {
               <div
                 key={action.id}
                 className={cn(
-                  "flex items-center gap-2 text-caption px-2 py-1 rounded",
+                  "flex items-center gap-2 text-xs px-2 py-1 rounded",
                   action.success
                     ? "bg-success/10 text-success"
                     : "bg-critical/10 text-critical",
@@ -149,7 +152,10 @@ function parseMarkdownLine(line: string): React.ReactNode[] {
     if (match[2]) {
       // Bold text
       parts.push(
-        <strong key={keyIndex++} className="text-text-primary font-semibold">
+        <strong
+          key={keyIndex++}
+          className="text-slate-900 dark:text-text-primary font-semibold"
+        >
           {match[2]}
         </strong>,
       );
@@ -158,7 +164,7 @@ function parseMarkdownLine(line: string): React.ReactNode[] {
       parts.push(
         <code
           key={keyIndex++}
-          className="bg-surface-hover px-1 py-0.5 rounded text-caption font-mono"
+          className="bg-slate-200 dark:bg-surface-hover px-1.5 py-0.5 rounded text-xs font-mono"
         >
           {match[3]}
         </code>,
@@ -186,7 +192,7 @@ function MessageContent({ content }: { content: string }) {
         if (line.startsWith("- ")) {
           return (
             <div key={i} className="flex gap-2 ml-2">
-              <span className="text-text-tertiary">•</span>
+              <span className="text-slate-400 dark:text-text-tertiary">•</span>
               <span>{parseMarkdownLine(line.slice(2))}</span>
             </div>
           );
@@ -220,14 +226,14 @@ function QuickActions({ onSelect }: QuickActionsProps) {
   ];
 
   return (
-    <div className="flex flex-wrap gap-2 p-3 border-t border-border-subtle">
+    <div className="flex flex-wrap gap-2 p-3 border-t border-slate-200 dark:border-border-subtle">
       {actions.map((action) => (
         <Button
           key={action.label}
           variant="outline"
           size="sm"
           onClick={() => onSelect(action.message)}
-          className="text-caption gap-1.5"
+          className="text-sm gap-1.5 h-9"
         >
           <span>{action.icon}</span>
           {action.label}
@@ -238,7 +244,7 @@ function QuickActions({ onSelect }: QuickActionsProps) {
 }
 
 // ============================================
-// CONTEXT SUMMARY
+// CONTEXT SUMMARY (Compact for floating chat)
 // ============================================
 
 function ContextSummary() {
@@ -250,15 +256,15 @@ function ContextSummary() {
   const { summary, activeWarnings, daysUntilMasterDeadline } = contextSnapshot;
 
   return (
-    <div className="p-3 bg-surface-hover border-b border-border-subtle">
+    <div className="px-4 py-3 bg-slate-50 dark:bg-surface-hover border-b border-slate-200 dark:border-border-subtle">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center justify-between text-caption"
+        className="w-full flex items-center justify-between text-sm"
       >
         <div className="flex items-center gap-2">
           <div
             className={cn(
-              "w-2 h-2 rounded-full",
+              "w-2.5 h-2.5 rounded-full",
               summary.projectHealthScore >= 70
                 ? "bg-success"
                 : summary.projectHealthScore >= 40
@@ -266,14 +272,14 @@ function ContextSummary() {
                   : "bg-critical",
             )}
           />
-          <span className="text-text-secondary">
+          <span className="text-slate-600 dark:text-text-secondary font-medium">
             {summary.completedMilestones}/{summary.totalMilestones} milestones •{" "}
-            {daysUntilMasterDeadline}d remaining
+            {daysUntilMasterDeadline}d left
           </span>
         </div>
         <ChevronDown
           className={cn(
-            "h-4 w-4 text-text-tertiary transition-transform duration-normal",
+            "h-4 w-4 text-slate-400 dark:text-text-tertiary transition-transform duration-150",
             expanded && "rotate-180",
           )}
         />
@@ -288,22 +294,28 @@ function ContextSummary() {
             transition={{ duration: 0.15 }}
             className="overflow-hidden"
           >
-            <div className="grid grid-cols-2 gap-2 mt-3 text-caption">
-              <div className="p-2 bg-surface rounded-md">
-                <div className="text-text-tertiary">IAs</div>
-                <div className="text-text-secondary">
+            <div className="grid grid-cols-2 gap-2 mt-3 text-sm">
+              <div className="p-2.5 bg-white dark:bg-surface rounded-lg border border-slate-200 dark:border-border-subtle">
+                <div className="text-slate-500 dark:text-text-tertiary text-xs">
+                  IAs
+                </div>
+                <div className="text-slate-800 dark:text-text-secondary font-medium">
                   {summary.completedIAs} done, {summary.inProgressIAs} active
                 </div>
               </div>
-              <div className="p-2 bg-surface rounded-md">
-                <div className="text-text-tertiary">This Week</div>
-                <div className="text-text-secondary">
+              <div className="p-2.5 bg-white dark:bg-surface rounded-lg border border-slate-200 dark:border-border-subtle">
+                <div className="text-slate-500 dark:text-text-tertiary text-xs">
+                  This Week
+                </div>
+                <div className="text-slate-800 dark:text-text-secondary font-medium">
                   {summary.hoursLoggedThisWeek}h / {summary.weeklyBudget}h
                 </div>
               </div>
-              <div className="p-2 bg-surface rounded-md">
-                <div className="text-text-tertiary">Blockers</div>
-                <div className="text-text-secondary">
+              <div className="p-2.5 bg-white dark:bg-surface rounded-lg border border-slate-200 dark:border-border-subtle">
+                <div className="text-slate-500 dark:text-text-tertiary text-xs">
+                  Blockers
+                </div>
+                <div className="text-slate-800 dark:text-text-secondary font-medium">
                   {summary.activeBlockers} active
                   {summary.criticalBlockers > 0 && (
                     <span className="text-critical ml-1">
@@ -312,10 +324,13 @@ function ContextSummary() {
                   )}
                 </div>
               </div>
-              <div className="p-2 bg-surface rounded-md">
-                <div className="text-text-tertiary">Health Score</div>
+              <div className="p-2.5 bg-white dark:bg-surface rounded-lg border border-slate-200 dark:border-border-subtle">
+                <div className="text-slate-500 dark:text-text-tertiary text-xs">
+                  Health
+                </div>
                 <div
                   className={cn(
+                    "font-semibold",
                     summary.projectHealthScore >= 70
                       ? "text-success"
                       : summary.projectHealthScore >= 40
@@ -329,19 +344,19 @@ function ContextSummary() {
             </div>
 
             {activeWarnings.length > 0 && (
-              <div className="mt-3 space-y-1">
-                {activeWarnings.slice(0, 3).map((warning, i) => (
+              <div className="mt-3 space-y-1.5">
+                {activeWarnings.slice(0, 2).map((warning, i) => (
                   <div
                     key={i}
                     className={cn(
-                      "flex items-center gap-2 text-caption px-2 py-1 rounded",
+                      "flex items-center gap-2 text-sm px-2.5 py-1.5 rounded-lg",
                       warning.severity === "error"
-                        ? "bg-critical/10 text-critical"
-                        : "bg-warning/10 text-warning",
+                        ? "bg-red-50 dark:bg-critical/10 text-red-700 dark:text-critical"
+                        : "bg-amber-50 dark:bg-warning/10 text-amber-700 dark:text-warning",
                     )}
                   >
-                    <AlertTriangle className="h-3 w-3" />
-                    {warning.message}
+                    <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">{warning.message}</span>
                   </div>
                 ))}
               </div>
@@ -354,13 +369,47 @@ function ContextSummary() {
 }
 
 // ============================================
-// MAIN PANEL COMPONENT
+// SCREEN CONTEXT INDICATOR
+// ============================================
+
+function ScreenContextIndicator() {
+  const { currentView, contextSnapshot } = useAssistant();
+
+  const getViewLabel = () => {
+    switch (currentView.view) {
+      case "dashboard":
+        return "Viewing Dashboard";
+      case "timeline":
+        return "Viewing Timeline";
+      case "settings":
+        return "Viewing Settings";
+      case "ia_detail":
+        const ia = contextSnapshot?.summary.upcomingMilestones.find(
+          (m) => m.iaId === currentView.focusedIAId,
+        );
+        return ia ? `Viewing ${ia.iaName}` : "Viewing IA Details";
+      default:
+        return "Viewing App";
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-1.5 px-2 py-1 bg-primary/10 dark:bg-primary/10 rounded text-xs font-medium text-primary">
+      <Eye className="h-3 w-3" />
+      <span>{getViewLabel()}</span>
+    </div>
+  );
+}
+
+// ============================================
+// FLOATING CHAT PANEL COMPONENT
 // ============================================
 
 export function AssistantPanel() {
   const { state, closePanel, sendMessage, clearConversation } = useAssistant();
 
   const [inputValue, setInputValue] = useState("");
+  const [isExpanded, setIsExpanded] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -391,159 +440,173 @@ export function AssistantPanel() {
 
   const messages = state.conversation?.messages || [];
 
+  // Floating chat dimensions - LARGER
+  const chatWidth = isExpanded ? "w-[480px]" : "w-[420px]";
+  const chatHeight = isExpanded ? "h-[680px]" : "h-[560px]";
+
   return (
     <AnimatePresence>
       {state.isOpen && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40"
-            onClick={closePanel}
-          />
-
-          {/* Panel */}
-          <motion.div
-            initial={{ opacity: 0, x: 400 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 400 }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-surface border-l border-border z-50 flex flex-col shadow-5"
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-border-subtle">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#A855F7] to-primary flex items-center justify-center">
-                  <Sparkles className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-body font-semibold text-text-primary">
-                    IB Assistant
-                  </h2>
-                  <p className="text-caption text-text-tertiary">
-                    Ask me anything about your IAs
-                  </p>
-                </div>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          transition={{ type: "spring", damping: 25, stiffness: 400 }}
+          className={cn(
+            "fixed bottom-24 right-6 z-50",
+            chatWidth,
+            chatHeight,
+            "bg-white dark:bg-surface",
+            "border border-slate-200 dark:border-border-subtle",
+            "rounded-2xl shadow-2xl dark:shadow-5",
+            "flex flex-col overflow-hidden",
+          )}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-border-subtle bg-slate-50 dark:bg-surface-hover">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#A855F7] to-primary flex items-center justify-center">
+                <Sparkles className="h-5 w-5 text-white" />
               </div>
-              <div className="flex items-center gap-1">
-                {messages.length > 0 && (
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={clearConversation}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                )}
-                <Button variant="ghost" size="icon-sm" onClick={closePanel}>
-                  <X className="h-5 w-5" />
-                </Button>
+              <div>
+                <h2 className="text-base font-semibold text-slate-900 dark:text-text-primary">
+                  IB Assistant
+                </h2>
+                <ScreenContextIndicator />
               </div>
             </div>
-
-            {/* Context Summary */}
-            <ContextSummary />
-
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {messages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center">
-                  <div className="w-16 h-16 rounded-full bg-surface-hover flex items-center justify-center mb-4">
-                    <MessageSquare className="h-8 w-8 text-text-tertiary" />
-                  </div>
-                  <h3 className="text-h3 text-text-secondary mb-2">
-                    How can I help?
-                  </h3>
-                  <p className="text-body-sm text-text-tertiary max-w-[250px]">
-                    Ask me about your progress, upcoming deadlines, blockers, or
-                    what you should work on next.
-                  </p>
-                </div>
-              ) : (
-                <>
-                  {messages.map((message) => (
-                    <MessageBubble key={message.id} message={message} />
-                  ))}
-                  {state.isProcessing && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.15 }}
-                      className="flex items-center gap-2 p-3 bg-surface-hover rounded-lg mr-8"
-                    >
-                      <Loader2 className="h-4 w-4 animate-spin text-[#A855F7]" />
-                      <span className="text-body-sm text-text-tertiary">
-                        Thinking...
-                      </span>
-                    </motion.div>
-                  )}
-                  <div ref={messagesEndRef} />
-                </>
-              )}
-            </div>
-
-            {/* Quick Actions */}
-            {messages.length === 0 && (
-              <QuickActions onSelect={handleQuickAction} />
-            )}
-
-            {/* Input */}
-            <form
-              onSubmit={handleSubmit}
-              className="p-4 border-t border-border-subtle"
-            >
-              <div className="flex gap-2">
-                <Input
-                  ref={inputRef}
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  placeholder="Ask me anything..."
-                  disabled={state.isProcessing}
-                  className="flex-1"
-                />
+            <div className="flex items-center gap-1">
+              {messages.length > 0 && (
                 <Button
-                  type="submit"
-                  disabled={!inputValue.trim() || state.isProcessing}
-                  className="bg-[#A855F7] hover:bg-[#9333EA]"
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={clearConversation}
+                  className="h-8 w-8"
                 >
-                  {state.isProcessing ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Send className="h-4 w-4" />
-                  )}
+                  <Trash2 className="h-4 w-4" />
                 </Button>
-              </div>
-              <p className="text-caption text-text-tertiary mt-2 text-center">
-                Press{" "}
-                <kbd className="px-1.5 py-0.5 bg-surface-hover rounded text-text-secondary font-mono">
-                  ⌘K
-                </kbd>{" "}
-                to toggle
-              </p>
-            </form>
-
-            {/* Error Display */}
-            <AnimatePresence>
-              {state.lastError && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 20 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute bottom-20 left-4 right-4 p-3 bg-critical/10 border border-critical/30 rounded-lg"
-                >
-                  <div className="flex items-center gap-2 text-body-sm text-critical">
-                    <AlertTriangle className="h-4 w-4" />
-                    {state.lastError}
-                  </div>
-                </motion.div>
               )}
-            </AnimatePresence>
-          </motion.div>
-        </>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="h-8 w-8"
+              >
+                {isExpanded ? (
+                  <Minimize2 className="h-4 w-4" />
+                ) : (
+                  <Maximize2 className="h-4 w-4" />
+                )}
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={closePanel}
+                className="h-8 w-8"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Context Summary */}
+          <ContextSummary />
+
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {messages.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-center px-6">
+                <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-surface-hover flex items-center justify-center mb-4">
+                  <MessageSquare className="h-8 w-8 text-slate-400 dark:text-text-tertiary" />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-800 dark:text-text-secondary mb-2">
+                  How can I help?
+                </h3>
+                <p className="text-sm text-slate-500 dark:text-text-tertiary max-w-[260px] leading-relaxed">
+                  I can see what you're viewing. Ask about your progress,
+                  deadlines, or what to work on next.
+                </p>
+              </div>
+            ) : (
+              <>
+                {messages.map((message) => (
+                  <MessageBubble key={message.id} message={message} />
+                ))}
+                {state.isProcessing && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.15 }}
+                    className="flex items-center gap-2 p-3 bg-slate-100 dark:bg-surface-hover rounded-xl mr-8"
+                  >
+                    <Loader2 className="h-4 w-4 animate-spin text-[#A855F7]" />
+                    <span className="text-sm text-slate-600 dark:text-text-tertiary">
+                      Thinking...
+                    </span>
+                  </motion.div>
+                )}
+                <div ref={messagesEndRef} />
+              </>
+            )}
+          </div>
+
+          {/* Quick Actions */}
+          {messages.length === 0 && (
+            <QuickActions onSelect={handleQuickAction} />
+          )}
+
+          {/* Input */}
+          <form
+            onSubmit={handleSubmit}
+            className="p-3 border-t border-slate-200 dark:border-border-subtle bg-slate-50 dark:bg-surface-hover"
+          >
+            <div className="flex gap-2">
+              <Input
+                ref={inputRef}
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder="Ask me anything..."
+                disabled={state.isProcessing}
+                className="flex-1 h-11 text-sm bg-white dark:bg-surface"
+              />
+              <Button
+                type="submit"
+                disabled={!inputValue.trim() || state.isProcessing}
+                className="h-11 w-11 p-0 bg-[#A855F7] hover:bg-[#9333EA]"
+              >
+                {state.isProcessing ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <Send className="h-5 w-5" />
+                )}
+              </Button>
+            </div>
+            <p className="text-xs text-slate-500 dark:text-text-tertiary mt-2 text-center">
+              <kbd className="px-1.5 py-0.5 bg-slate-200 dark:bg-surface rounded text-slate-600 dark:text-text-secondary font-mono">
+                ⌘K
+              </kbd>{" "}
+              to toggle
+            </p>
+          </form>
+
+          {/* Error Display */}
+          <AnimatePresence>
+            {state.lastError && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                transition={{ duration: 0.15 }}
+                className="absolute bottom-20 left-4 right-4 p-3 bg-red-50 dark:bg-critical/10 border border-red-200 dark:border-critical/30 rounded-xl"
+              >
+                <div className="flex items-center gap-2 text-sm text-red-700 dark:text-critical">
+                  <AlertTriangle className="h-4 w-4" />
+                  {state.lastError}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
       )}
     </AnimatePresence>
   );
@@ -566,21 +629,21 @@ export function AssistantTrigger() {
       whileTap={{ scale: 0.95 }}
       onClick={togglePanel}
       className={cn(
-        "fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-3 z-30",
+        "fixed bottom-6 right-6 w-16 h-16 rounded-full shadow-lg z-50",
         "bg-gradient-to-br from-[#A855F7] to-primary",
         "flex items-center justify-center",
         "hover:from-[#9333EA] hover:to-primary-hover",
-        "transition-all duration-normal",
+        "transition-all duration-150",
         state.isOpen && "opacity-0 pointer-events-none",
       )}
     >
-      <Sparkles className="h-6 w-6 text-white" />
+      <Sparkles className="h-7 w-7 text-white" />
 
       {/* Notification badge */}
       {(hasWarnings || criticalCount > 0) && (
         <div
           className={cn(
-            "absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-caption font-bold",
+            "absolute -top-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold",
             criticalCount > 0
               ? "bg-critical text-white"
               : "bg-warning text-black",
@@ -603,10 +666,15 @@ export function AssistantHeaderButton() {
   const healthScore = contextSnapshot?.summary.projectHealthScore || 100;
 
   return (
-    <Button variant="ghost" size="sm" onClick={togglePanel} className="gap-2">
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={togglePanel}
+      className="gap-2 h-10"
+    >
       <Sparkles
         className={cn(
-          "h-4 w-4",
+          "h-5 w-5",
           healthScore >= 70
             ? "text-[#A855F7]"
             : healthScore >= 40
@@ -614,7 +682,9 @@ export function AssistantHeaderButton() {
               : "text-critical",
         )}
       />
-      <span className="hidden sm:inline text-text-secondary">Assistant</span>
+      <span className="hidden sm:inline text-slate-600 dark:text-text-secondary font-medium">
+        Assistant
+      </span>
       <Badge
         variant={
           healthScore >= 70
@@ -623,7 +693,7 @@ export function AssistantHeaderButton() {
               ? "warning"
               : "error"
         }
-        className="text-caption"
+        size="default"
       >
         {healthScore}%
       </Badge>
