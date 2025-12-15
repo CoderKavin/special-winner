@@ -1,4 +1,7 @@
-import type { IA, Milestone } from "../types";
+import type { IA, Milestone, DeepWorkSettings } from "../types";
+import { DEFAULT_DEEP_WORK_SETTINGS } from "../types";
+import { detectMilestonePhase } from "./learning";
+import { isDeepWorkPhase, getMinimumSessionHours } from "./deepwork";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const SCOPES = "https://www.googleapis.com/auth/calendar";
@@ -11,6 +14,15 @@ const COLOR_MAP: Record<string, string> = {
   economics: "10", // Green
   english: "6", // Orange
   history: "11", // Red
+};
+
+// Darker colors for deep work blocks
+const DEEP_WORK_COLOR_MAP: Record<string, string> = {
+  math: "1", // Lavender (darker feel)
+  physics: "3", // Purple (keeping as deep)
+  economics: "2", // Sage
+  english: "4", // Flamingo
+  history: "11", // Red (keeping as intense)
 };
 
 interface GoogleAuth {
@@ -146,21 +158,68 @@ async function getOrCreateCalendar(): Promise<string> {
   return calendarId!;
 }
 
-function milestoneToEvent(ia: IA, milestone: Milestone) {
+function milestoneToEvent(
+  ia: IA,
+  milestone: Milestone,
+  settings: DeepWorkSettings = DEFAULT_DEEP_WORK_SETTINGS,
+) {
+  const phase =
+    milestone.phase || detectMilestonePhase(milestone.milestone_name);
+  const isDeepWork = isDeepWorkPhase(phase);
+  const minimumHours = getMinimumSessionHours(phase, settings);
+
   // Event starts at 9:00 AM Kerala IST (UTC+5:30)
   const deadlineDate = milestone.deadline;
-  const startDateTime = `${deadlineDate}T09:00:00+05:30`;
 
-  // Duration in hours
-  const durationHours = Math.ceil(
+  // Calculate duration with buffers for deep work
+  const coreDurationHours = Math.max(
     milestone.estimated_hours * milestone.buffer_multiplier,
+    isDeepWork ? minimumHours : 0,
   );
-  const endHour = 9 + durationHours;
+
+  // Add prep and decompress buffers for deep work
+  const prepMinutes = isDeepWork ? settings.prepBufferMinutes : 0;
+  const decompressMinutes = isDeepWork ? settings.decompressBufferMinutes : 0;
+  // Adjust start time to account for prep buffer
+  const startHour = 9 - Math.ceil(prepMinutes / 60);
+  const startMinute = prepMinutes % 60;
+  const startDateTime = `${deadlineDate}T${startHour.toString().padStart(2, "0")}:${startMinute.toString().padStart(2, "0")}:00+05:30`;
+
+  const endHour =
+    9 + Math.ceil(coreDurationHours) + Math.ceil(decompressMinutes / 60);
   const endDateTime = `${deadlineDate}T${endHour.toString().padStart(2, "0")}:00:00+05:30`;
 
+  // Build description with deep work information
+  let description = milestone.description;
+  description += `\n\n📊 Estimated time: ${coreDurationHours.toFixed(1)} hours`;
+
+  if (isDeepWork) {
+    description += `\n\n🎯 DEEP WORK SESSION`;
+    description += `\n• Phase: ${phase.charAt(0).toUpperCase() + phase.slice(1)}`;
+    description += `\n• Minimum recommended: ${minimumHours}h`;
+    if (prepMinutes > 0) {
+      description += `\n• Prep time: ${prepMinutes} minutes`;
+    }
+    if (decompressMinutes > 0) {
+      description += `\n• Decompress time: ${decompressMinutes} minutes`;
+    }
+    description += `\n\n⚠️ This is uninterrupted focus time. Please do not schedule meetings or interruptions during this block.`;
+  }
+
+  description += `\n\n📁 Part of: ${ia.name}`;
+
+  // Use deeper colors for deep work
+  const colorId = isDeepWork
+    ? DEEP_WORK_COLOR_MAP[ia.subjectColor] || COLOR_MAP[ia.subjectColor]
+    : COLOR_MAP[ia.subjectColor] || "1";
+
+  // Build event title with deep work indicator
+  const titlePrefix = isDeepWork ? "🔒 DEEP WORK: " : "";
+  const summary = `${titlePrefix}[${ia.name.split(" ")[0]}] ${milestone.milestone_name}`;
+
   return {
-    summary: `[${ia.name.split(" ")[0]}] ${milestone.milestone_name}`,
-    description: `${milestone.description}\n\nEstimated time: ${(milestone.estimated_hours * milestone.buffer_multiplier).toFixed(1)} hours\n\nPart of: ${ia.name}`,
+    summary,
+    description,
     start: {
       dateTime: startDateTime,
       timeZone: "Asia/Kolkata",
@@ -169,13 +228,23 @@ function milestoneToEvent(ia: IA, milestone: Milestone) {
       dateTime: endDateTime,
       timeZone: "Asia/Kolkata",
     },
-    colorId: COLOR_MAP[ia.subjectColor] || "1",
+    colorId,
+    // Mark as BUSY for deep work, FREE for regular work
+    transparency: isDeepWork ? "opaque" : "transparent",
+    // Add focus time for deep work
+    visibility: "default",
     reminders: {
       useDefault: false,
-      overrides: [
-        { method: "popup", minutes: 1440 }, // 1 day before
-        { method: "popup", minutes: 60 }, // 1 hour before
-      ],
+      overrides: isDeepWork
+        ? [
+            { method: "popup", minutes: 1440 }, // 1 day before
+            { method: "popup", minutes: 120 }, // 2 hours before (prep time)
+            { method: "popup", minutes: 15 }, // 15 minutes before (final prep)
+          ]
+        : [
+            { method: "popup", minutes: 1440 }, // 1 day before
+            { method: "popup", minutes: 60 }, // 1 hour before
+          ],
     },
   };
 }
@@ -184,13 +253,14 @@ export async function syncMilestoneToCalendar(
   ia: IA,
   milestone: Milestone,
   existingEventId?: string,
+  settings?: DeepWorkSettings,
 ): Promise<string> {
   if (!googleAuth) {
     throw new Error("Not signed in to Google");
   }
 
   const calId = await getOrCreateCalendar();
-  const event = milestoneToEvent(ia, milestone);
+  const event = milestoneToEvent(ia, milestone, settings);
 
   if (existingEventId) {
     // Update existing event
@@ -209,7 +279,7 @@ export async function syncMilestoneToCalendar(
     if (!response.ok) {
       // If update fails (event might be deleted), create new
       if (response.status === 404) {
-        return syncMilestoneToCalendar(ia, milestone);
+        return syncMilestoneToCalendar(ia, milestone, undefined, settings);
       }
       throw new Error("Failed to update calendar event");
     }
@@ -243,6 +313,7 @@ export async function syncAllMilestones(
   ias: IA[],
   existingEventIds: Record<string, string>,
   onProgress?: (completed: number, total: number) => void,
+  settings?: DeepWorkSettings,
 ): Promise<Record<string, string>> {
   const newEventIds: Record<string, string> = { ...existingEventIds };
 
@@ -259,6 +330,7 @@ export async function syncAllMilestones(
         ia,
         milestone,
         existingEventIds[milestone.id],
+        settings,
       );
       newEventIds[milestone.id] = eventId;
     } catch (error) {

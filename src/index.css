@@ -1,57 +1,383 @@
 @import "tailwindcss";
 
+/* ============================================
+   LINEAR-INSPIRED DESIGN SYSTEM
+   ============================================ */
+
+/* Import Inter and JetBrains Mono fonts */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
+
 @theme {
-    --color-border: hsl(217.2 32.6% 17.5%);
-    --color-input: hsl(217.2 32.6% 17.5%);
-    --color-ring: hsl(212.7 26.8% 83.9%);
-    --color-background: hsl(222.2 84% 4.9%);
-    --color-foreground: hsl(210 40% 98%);
-    --color-primary: hsl(210 40% 98%);
-    --color-primary-foreground: hsl(222.2 47.4% 11.2%);
-    --color-secondary: hsl(217.2 32.6% 17.5%);
-    --color-secondary-foreground: hsl(210 40% 98%);
-    --color-muted: hsl(217.2 32.6% 17.5%);
-    --color-muted-foreground: hsl(215 20.2% 65.1%);
-    --color-accent: hsl(217.2 32.6% 17.5%);
-    --color-accent-foreground: hsl(210 40% 98%);
-    --color-destructive: hsl(0 62.8% 30.6%);
-    --color-destructive-foreground: hsl(210 40% 98%);
-    --color-popover: hsl(222.2 84% 4.9%);
-    --color-popover-foreground: hsl(210 40% 98%);
-    --color-card: hsl(222.2 84% 4.9%);
-    --color-card-foreground: hsl(210 40% 98%);
+    /* ========== BASE COLORS ========== */
+    --color-background: #0d0e11;
+    --color-surface: #16181d;
+    --color-surface-hover: #1c1e24;
+    --color-border-subtle: #2b2d31;
+    --color-border-emphasis: #3f4248;
+
+    /* ========== ACCENT & STATUS COLORS ========== */
+    --color-primary: #5e6ad2;
+    --color-primary-hover: #6b76db;
+    --color-primary-foreground: #ffffff;
+    --color-success: #26a269;
+    --color-warning: #ffa500;
+    --color-critical: #e5484d;
+    --color-info: #4c9aff;
+
+    /* ========== TEXT COLORS ========== */
+    --color-text-primary: #e6e8eb;
+    --color-text-secondary: #9ba1a6;
+    --color-text-tertiary: #5e6772;
+    --color-text-disabled: #3f4248;
+
+    /* ========== SUBJECT COLORS ========== */
+    --color-math: #4c9aff;
+    --color-physics: #9b59b6;
+    --color-economics: #27ae60;
+    --color-english: #e67e22;
+    --color-history: #e74c3c;
+
+    /* ========== SEMANTIC MAPPINGS ========== */
+    --color-border: #2b2d31;
+    --color-input: #2b2d31;
+    --color-ring: #5e6ad2;
+    --color-foreground: #e6e8eb;
+    --color-secondary: #16181d;
+    --color-secondary-foreground: #e6e8eb;
+    --color-muted: #16181d;
+    --color-muted-foreground: #9ba1a6;
+    --color-accent: #5e6ad2;
+    --color-accent-foreground: #ffffff;
+    --color-destructive: #e5484d;
+    --color-destructive-foreground: #ffffff;
+    --color-popover: #1c1e24;
+    --color-popover-foreground: #e6e8eb;
+    --color-card: #16181d;
+    --color-card-foreground: #e6e8eb;
+
+    /* ========== BORDER RADIUS ========== */
     --radius: 0.5rem;
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --radius-xl: 12px;
+
+    /* ========== SHADOWS ========== */
+    --shadow-1: 0 1px 3px rgba(0, 0, 0, 0.2);
+    --shadow-2: 0 2px 8px rgba(0, 0, 0, 0.2);
+    --shadow-3: 0 4px 12px rgba(0, 0, 0, 0.25);
+    --shadow-4: 0 8px 24px rgba(0, 0, 0, 0.3);
+    --shadow-5: 0 12px 32px rgba(0, 0, 0, 0.35);
+
+    /* ========== FONTS ========== */
+    --font-sans:
+        "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        sans-serif;
+    --font-mono: "JetBrains Mono", "SF Mono", "Fira Code", monospace;
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
 }
 
 body {
-    background-color: rgb(2 6 23);
-    color: rgb(248 250 252);
-    font-family:
-        system-ui,
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        Roboto,
-        sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+    margin: 0;
+    padding: 0;
 }
 
-/* Custom scrollbar for dark mode */
+/* ============================================
+   TYPOGRAPHY CLASSES
+   ============================================ */
+
+.text-display {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+}
+
+.text-h1 {
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+}
+
+.text-h2 {
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.text-h3 {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.text-body-lg {
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.5;
+}
+
+.text-body {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.5;
+}
+
+.text-body-sm {
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.5;
+}
+
+.text-caption {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    line-height: 1.5;
+}
+
+.text-mono {
+    font-family: var(--font-mono);
+}
+
+/* ============================================
+   SCROLLBAR STYLES
+   ============================================ */
+
 ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-    background: rgb(15 23 42);
+    background: var(--color-background);
 }
 
 ::-webkit-scrollbar-thumb {
-    background: rgb(51 65 85);
+    background: var(--color-border-emphasis);
     border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: rgb(71 85 105);
+    background: var(--color-text-tertiary);
+}
+
+/* Firefox scrollbar */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border-emphasis) var(--color-background);
+}
+
+/* ============================================
+   FOCUS STYLES
+   ============================================ */
+
+:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+/* ============================================
+   SELECTION STYLES
+   ============================================ */
+
+::selection {
+    background-color: rgba(94, 106, 210, 0.3);
+    color: var(--color-text-primary);
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+@keyframes pulse-border {
+    0%,
+    100% {
+        opacity: 0.3;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+@keyframes shake {
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-3px);
+    }
+    75% {
+        transform: translateX(3px);
+    }
+}
+
+@keyframes success-pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.animate-shimmer {
+    background: linear-gradient(
+        90deg,
+        var(--color-surface) 0%,
+        var(--color-surface-hover) 50%,
+        var(--color-surface) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+.animate-pulse-border {
+    animation: pulse-border 1.5s ease-in-out infinite;
+}
+
+.animate-shake {
+    animation: shake 0.2s ease-in-out 3;
+}
+
+.animate-success-pulse {
+    animation: success-pulse 0.3s ease-in-out;
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+/* Surface variants */
+.bg-surface {
+    background-color: var(--color-surface);
+}
+
+.bg-surface-hover {
+    background-color: var(--color-surface-hover);
+}
+
+/* Border variants */
+.border-subtle {
+    border-color: var(--color-border-subtle);
+}
+
+.border-emphasis {
+    border-color: var(--color-border-emphasis);
+}
+
+/* Text variants */
+.text-primary {
+    color: var(--color-text-primary);
+}
+
+.text-secondary {
+    color: var(--color-text-secondary);
+}
+
+.text-tertiary {
+    color: var(--color-text-tertiary);
+}
+
+/* Subject color utilities */
+.subject-math {
+    --subject-color: var(--color-math);
+}
+
+.subject-physics {
+    --subject-color: var(--color-physics);
+}
+
+.subject-economics {
+    --subject-color: var(--color-economics);
+}
+
+.subject-english {
+    --subject-color: var(--color-english);
+}
+
+.subject-history {
+    --subject-color: var(--color-history);
+}
+
+.bg-subject {
+    background-color: var(--subject-color);
+}
+
+.bg-subject-80 {
+    background-color: color-mix(in srgb, var(--subject-color) 80%, transparent);
+}
+
+.bg-subject-60 {
+    background-color: color-mix(in srgb, var(--subject-color) 60%, transparent);
+}
+
+.border-subject {
+    border-color: var(--subject-color);
+}
+
+.text-subject {
+    color: var(--subject-color);
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ============================================
+   MOBILE TOUCH TARGETS
+   ============================================ */
+
+@media (max-width: 640px) {
+    button,
+    [role="button"],
+    input[type="checkbox"],
+    input[type="radio"],
+    a {
+        min-height: 44px;
+        min-width: 44px;
+    }
 }

@@ -6,7 +6,9 @@ interface TabsContextValue {
   onValueChange: (value: string) => void;
 }
 
-const TabsContext = React.createContext<TabsContextValue | undefined>(undefined);
+const TabsContext = React.createContext<TabsContextValue | undefined>(
+  undefined,
+);
 
 interface TabsProps extends React.HTMLAttributes<HTMLDivElement> {
   value: string;
@@ -23,7 +25,7 @@ const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
         </div>
       </TabsContext.Provider>
     );
-  }
+  },
 );
 Tabs.displayName = "Tabs";
 
@@ -33,16 +35,20 @@ const TabsList = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
+    role="tablist"
     className={cn(
-      "inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground",
-      className
+      "inline-flex items-center gap-1",
+      "rounded-lg bg-surface border border-border-subtle",
+      "p-1",
+      className,
     )}
     {...props}
   />
 ));
 TabsList.displayName = "TabsList";
 
-interface TabsTriggerProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface TabsTriggerProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   value: string;
 }
 
@@ -56,18 +62,30 @@ const TabsTrigger = React.forwardRef<HTMLButtonElement, TabsTriggerProps>(
     return (
       <button
         ref={ref}
+        role="tab"
+        aria-selected={isActive}
         onClick={() => context.onValueChange(value)}
         className={cn(
-          "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+          // Base styles
+          "inline-flex items-center justify-center gap-2",
+          "whitespace-nowrap rounded-md",
+          "px-4 py-2",
+          "text-sm font-medium",
+          "transition-all duration-normal ease-out",
+          // Focus state
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+          // Disabled state
+          "disabled:pointer-events-none disabled:opacity-40",
+          // Active/Inactive states
           isActive
-            ? "bg-background text-foreground shadow-sm"
-            : "hover:bg-background/50",
-          className
+            ? "bg-surface-hover text-text-primary shadow-1"
+            : "text-text-secondary hover:text-text-primary hover:bg-white/5",
+          className,
         )}
         {...props}
       />
     );
-  }
+  },
 );
 TabsTrigger.displayName = "TabsTrigger";
 
@@ -85,15 +103,82 @@ const TabsContent = React.forwardRef<HTMLDivElement, TabsContentProps>(
     return (
       <div
         ref={ref}
+        role="tabpanel"
         className={cn(
-          "mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-          className
+          "mt-4",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+          className,
         )}
         {...props}
       />
     );
-  }
+  },
 );
 TabsContent.displayName = "TabsContent";
 
-export { Tabs, TabsList, TabsTrigger, TabsContent };
+// Underlined tabs variant (Linear-style)
+const TabsListUnderlined = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    role="tablist"
+    className={cn(
+      "inline-flex items-center gap-0",
+      "border-b border-border-subtle",
+      className,
+    )}
+    {...props}
+  />
+));
+TabsListUnderlined.displayName = "TabsListUnderlined";
+
+const TabsTriggerUnderlined = React.forwardRef<
+  HTMLButtonElement,
+  TabsTriggerProps
+>(({ className, value, ...props }, ref) => {
+  const context = React.useContext(TabsContext);
+  if (!context)
+    throw new Error("TabsTriggerUnderlined must be used within Tabs");
+
+  const isActive = context.value === value;
+
+  return (
+    <button
+      ref={ref}
+      role="tab"
+      aria-selected={isActive}
+      onClick={() => context.onValueChange(value)}
+      className={cn(
+        // Base styles
+        "inline-flex items-center justify-center gap-2",
+        "whitespace-nowrap",
+        "px-4 py-3",
+        "text-sm font-medium",
+        "border-b-2 -mb-px",
+        "transition-all duration-normal ease-out",
+        // Focus state
+        "focus-visible:outline-none",
+        // Disabled state
+        "disabled:pointer-events-none disabled:opacity-40",
+        // Active/Inactive states
+        isActive
+          ? "border-primary text-text-primary"
+          : "border-transparent text-text-secondary hover:text-text-primary",
+        className,
+      )}
+      {...props}
+    />
+  );
+});
+TabsTriggerUnderlined.displayName = "TabsTriggerUnderlined";
+
+export {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+  TabsListUnderlined,
+  TabsTriggerUnderlined,
+};

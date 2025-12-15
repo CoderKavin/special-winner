@@ -73,9 +73,11 @@ const DialogOverlay = React.forwardRef<HTMLDivElement, DialogOverlayProps>(
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
       onClick={onClick}
       className={cn(
-        "fixed inset-0 z-50 bg-black/80 backdrop-blur-sm",
+        "fixed inset-0 z-50",
+        "bg-background/80 backdrop-blur-sm",
         className,
       )}
     />
@@ -86,10 +88,11 @@ DialogOverlay.displayName = "DialogOverlay";
 interface DialogContentProps {
   className?: string;
   children: React.ReactNode;
+  showClose?: boolean;
 }
 
 const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
-  ({ className, children }, ref) => {
+  ({ className, children, showClose = true }, ref) => {
     const context = React.useContext(DialogContext);
     if (!context) throw new Error("DialogContent must be used within Dialog");
 
@@ -98,23 +101,38 @@ const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
         <DialogOverlay onClick={() => context.onOpenChange(false)} />
         <motion.div
           ref={ref}
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          transition={{ duration: 0.2 }}
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.96 }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
           className={cn(
-            "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-slate-900 p-6 shadow-lg sm:rounded-lg",
+            "fixed left-[50%] top-[50%] z-50",
+            "w-full max-w-lg",
+            "translate-x-[-50%] translate-y-[-50%]",
+            "bg-surface border border-border-emphasis",
+            "rounded-xl",
+            "p-6",
+            "shadow-modal",
             className,
           )}
         >
           {children}
-          <button
-            onClick={() => context.onOpenChange(false)}
-            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-          >
-            <X className="h-4 w-4" />
-            <span className="sr-only">Close</span>
-          </button>
+          {showClose && (
+            <button
+              onClick={() => context.onOpenChange(false)}
+              className={cn(
+                "absolute right-4 top-4",
+                "rounded-md p-1",
+                "text-text-tertiary",
+                "transition-colors duration-fast",
+                "hover:text-text-primary hover:bg-white/5",
+                "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface",
+              )}
+            >
+              <X className="h-4 w-4" />
+              <span className="sr-only">Close</span>
+            </button>
+          )}
         </motion.div>
       </DialogPortal>
     );
@@ -127,10 +145,7 @@ const DialogHeader = ({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={cn(
-      "flex flex-col space-y-1.5 text-center sm:text-left",
-      className,
-    )}
+    className={cn("flex flex-col space-y-2 text-left", className)}
     {...props}
   />
 );
@@ -142,7 +157,8 @@ const DialogFooter = ({
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2",
+      "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
+      "mt-6 pt-4 border-t border-border-subtle",
       className,
     )}
     {...props}
@@ -156,10 +172,7 @@ const DialogTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <h2
     ref={ref}
-    className={cn(
-      "text-lg font-semibold leading-none tracking-tight",
-      className,
-    )}
+    className={cn("text-h2 font-semibold text-text-primary", className)}
     {...props}
   />
 ));
@@ -171,7 +184,7 @@ const DialogDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn("text-sm text-muted-foreground", className)}
+    className={cn("text-body-sm text-text-secondary", className)}
     {...props}
   />
 ));

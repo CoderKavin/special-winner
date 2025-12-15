@@ -60,7 +60,7 @@ For English Lang & Lit SL IA:
 
 export async function generateMilestones(
   ia: IA,
-  masterDeadline: string
+  masterDeadline: string,
 ): Promise<Milestone[]> {
   const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
 
@@ -150,7 +150,7 @@ Return ONLY valid JSON array, no markdown or other text:
 function assignMilestoneDates(
   ia: IA,
   aiMilestones: AIGeneratedMilestone[],
-  masterDeadline: string
+  masterDeadline: string,
 ): Milestone[] {
   const deadline = parseISO(masterDeadline);
   const now = new Date();
@@ -177,13 +177,18 @@ function assignMilestoneDates(
       deadline: format(milestoneDeadline, "yyyy-MM-dd"),
       startDate: format(startDate, "yyyy-MM-dd"),
       completed: false,
+      phase: undefined,
+      workSessions: [],
     };
   });
 
   return milestones;
 }
 
-function generateFallbackMilestones(ia: IA, masterDeadline: string): Milestone[] {
+function generateFallbackMilestones(
+  ia: IA,
+  masterDeadline: string,
+): Milestone[] {
   const isEconomics = ia.id.startsWith("econ");
 
   const fallbackMilestones: AIGeneratedMilestone[] = isEconomics
@@ -267,7 +272,7 @@ function generateFallbackMilestones(ia: IA, masterDeadline: string): Milestone[]
 export async function generateAllMilestones(
   ias: IA[],
   masterDeadline: string,
-  onProgress?: (completed: number, total: number) => void
+  onProgress?: (completed: number, total: number) => void,
 ): Promise<Map<string, Milestone[]>> {
   const results = new Map<string, Milestone[]>();
   const iasToGenerate = ias.filter((ia) => ia.milestones.length === 0);

@@ -1,10 +1,9 @@
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { Badge } from "../ui/badge";
+import { StatusDot } from "../ui/badge";
 import { Progress } from "../ui/progress";
 import { Button } from "../ui/button";
 import type { IA } from "../../types";
-import { SUBJECT_COLORS } from "../../types";
 import {
   getProgressPercentage,
   getNextMilestone,
@@ -28,13 +27,51 @@ interface IACardProps {
   isGenerating?: boolean;
 }
 
+// Map subject colors to Tailwind classes
+const SUBJECT_COLOR_MAP: Record<
+  string,
+  { border: string; bg: string; text: string; progress: string }
+> = {
+  math: {
+    border: "border-l-math",
+    bg: "bg-math",
+    text: "text-math",
+    progress: "bg-math",
+  },
+  physics: {
+    border: "border-l-physics",
+    bg: "bg-physics",
+    text: "text-physics",
+    progress: "bg-physics",
+  },
+  economics: {
+    border: "border-l-economics",
+    bg: "bg-economics",
+    text: "text-economics",
+    progress: "bg-economics",
+  },
+  english: {
+    border: "border-l-english",
+    bg: "bg-english",
+    text: "text-english",
+    progress: "bg-english",
+  },
+  history: {
+    border: "border-l-history",
+    bg: "bg-history",
+    text: "text-history",
+    progress: "bg-history",
+  },
+};
+
 export function IACard({
   ia,
   onClick,
   onGeneratePlan,
   isGenerating = false,
 }: IACardProps) {
-  const colors = SUBJECT_COLORS[ia.subjectColor];
+  const subjectStyles =
+    SUBJECT_COLOR_MAP[ia.subjectColor] || SUBJECT_COLOR_MAP.math;
   const progress = getProgressPercentage(ia.milestones);
   const nextMilestone = getNextMilestone(ia.milestones);
   const hasMilestones = ia.milestones.length > 0;
@@ -42,59 +79,70 @@ export function IACard({
   const isOverdue =
     nextMilestone && isBefore(parseISO(nextMilestone.deadline), new Date());
 
-  const getStatusBadge = () => {
+  const getStatusDot = () => {
     switch (ia.status) {
       case "completed":
-        return <Badge variant="success">Completed</Badge>;
+        return "success";
       case "in_progress":
-        return <Badge variant="warning">In Progress</Badge>;
+        return "warning";
       case "overdue":
-        return <Badge variant="error">Overdue</Badge>;
+        return "error";
       default:
-        return <Badge variant="secondary">Not Started</Badge>;
+        return "neutral";
     }
   };
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ scale: 1.02 }}
-      transition={{ duration: 0.2 }}
+      whileHover={{ y: -2 }}
+      transition={{ duration: 0.15 }}
     >
       <Card
         className={cn(
-          "relative overflow-hidden cursor-pointer transition-all",
-          "bg-slate-900/50 border-slate-800 hover:border-slate-700",
-          isOverdue && "border-red-500/50"
+          "relative overflow-hidden cursor-pointer",
+          "bg-surface border-border-subtle",
+          "hover:border-border-emphasis hover:shadow-card-hover",
+          "transition-all duration-medium",
+          // Subject color left border
+          "border-l-[3px]",
+          subjectStyles.border,
+          isOverdue && "border-l-critical",
         )}
         onClick={onClick}
       >
-        {/* Subject color indicator */}
-        <div
-          className={cn("absolute top-0 left-0 w-1 h-full", colors.border)}
-          style={{ backgroundColor: colors.border.replace("border-", "") }}
-        />
+        {/* Status indicator dot */}
+        <div className="absolute top-4 right-4">
+          <StatusDot
+            status={
+              getStatusDot() as "success" | "warning" | "error" | "neutral"
+            }
+          />
+        </div>
 
-        <CardHeader className="pb-2">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <CardTitle className="text-lg font-semibold text-slate-100 flex items-center gap-2">
-                <FileText className={cn("h-4 w-4", colors.text)} />
+        <CardHeader className="pb-2 pr-10">
+          <div className="flex items-start gap-2">
+            <FileText
+              className={cn("h-4 w-4 mt-0.5 shrink-0", subjectStyles.text)}
+            />
+            <div className="flex-1 min-w-0">
+              <CardTitle className="text-body-lg font-semibold text-text-primary truncate">
                 {ia.name}
               </CardTitle>
-              <p className="text-sm text-slate-500 mt-1">{ia.type}</p>
+              <p className="text-caption text-text-tertiary mt-0.5">
+                {ia.type}
+              </p>
             </div>
-            {getStatusBadge()}
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3">
           {/* Word count */}
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-slate-400">Word Count</span>
-            <span className="font-medium text-slate-200">
-              {ia.wordCount.toLocaleString()} words
+          <div className="flex items-center justify-between text-body-sm">
+            <span className="text-text-secondary">Word Count</span>
+            <span className="font-medium text-text-primary font-mono">
+              {ia.wordCount.toLocaleString()}
             </span>
           </div>
 
@@ -102,16 +150,19 @@ export function IACard({
           {hasMilestones ? (
             <>
               <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-400">Progress</span>
-                  <span className={cn("font-medium", colors.text)}>
+                <div className="flex items-center justify-between text-body-sm">
+                  <span className="text-text-secondary">Progress</span>
+                  <span
+                    className={cn("font-medium font-mono", subjectStyles.text)}
+                  >
                     {progress}%
                   </span>
                 </div>
                 <Progress
                   value={progress}
-                  className="h-2 bg-slate-800"
-                  indicatorClassName={colors.border.replace("border", "bg")}
+                  size="sm"
+                  className="bg-white/5"
+                  indicatorClassName={cn(subjectStyles.progress, "opacity-80")}
                 />
               </div>
 
@@ -119,34 +170,35 @@ export function IACard({
               {nextMilestone && (
                 <div
                   className={cn(
-                    "p-3 rounded-lg",
+                    "p-3 rounded-md",
                     isOverdue
-                      ? "bg-red-500/10 border border-red-500/20"
-                      : "bg-slate-800/50"
+                      ? "bg-critical/10 border border-critical/20"
+                      : "bg-surface-hover border border-border-subtle",
                   )}
                 >
-                  <div className="flex items-center gap-2 text-sm">
+                  <div className="flex items-center gap-2 text-body-sm">
                     {isOverdue ? (
-                      <AlertCircle className="h-4 w-4 text-red-400" />
+                      <AlertCircle className="h-3.5 w-3.5 text-critical shrink-0" />
                     ) : (
-                      <Clock className="h-4 w-4 text-slate-400" />
+                      <Clock className="h-3.5 w-3.5 text-text-tertiary shrink-0" />
                     )}
                     <span
                       className={cn(
-                        "font-medium",
-                        isOverdue ? "text-red-400" : "text-slate-300"
+                        "font-medium truncate",
+                        isOverdue ? "text-critical" : "text-text-primary",
                       )}
                     >
                       {nextMilestone.milestone_name}
                     </span>
                   </div>
-                  <div className="mt-1 flex items-center justify-between text-xs">
-                    <span className="text-slate-500">
+                  <div className="mt-1.5 flex items-center justify-between text-caption">
+                    <span className="text-text-tertiary">
                       Due {formatShortDate(nextMilestone.deadline)}
                     </span>
                     <span
                       className={cn(
-                        isOverdue ? "text-red-400" : "text-slate-400"
+                        "font-mono",
+                        isOverdue ? "text-critical" : "text-text-secondary",
                       )}
                     >
                       {daysUntilText(nextMilestone.deadline)}
@@ -159,32 +211,24 @@ export function IACard({
             /* Generate plan button */
             <Button
               variant="outline"
-              className="w-full gap-2 bg-slate-800/50 border-slate-700 hover:bg-slate-800"
+              className="w-full"
               onClick={(e) => {
                 e.stopPropagation();
                 onGeneratePlan();
               }}
               disabled={isGenerating}
+              isLoading={isGenerating}
             >
-              {isGenerating ? (
-                <>
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-400 border-t-transparent" />
-                  Generating...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="h-4 w-4" />
-                  Generate Plan
-                </>
-              )}
+              {!isGenerating && <Sparkles className="h-4 w-4" />}
+              {isGenerating ? "Generating..." : "Generate Plan"}
             </Button>
           )}
 
           {/* View details hint */}
           {hasMilestones && (
-            <div className="flex items-center justify-end text-xs text-slate-500">
+            <div className="flex items-center justify-end text-caption text-text-tertiary group-hover:text-text-secondary transition-colors">
               <span>View details</span>
-              <ChevronRight className="h-3 w-3 ml-1" />
+              <ChevronRight className="h-3 w-3 ml-0.5" />
             </div>
           )}
         </CardContent>

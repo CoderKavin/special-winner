@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Card, CardContent } from "../ui/card";
-import { Progress } from "../ui/progress";
+import { ProgressRing } from "../ui/progress";
 import { Badge } from "../ui/badge";
 import type { AppState } from "../../types";
 import { daysUntil, formatDate } from "../../lib/utils";
@@ -82,48 +82,65 @@ export function ProgressSummary({ state }: ProgressSummaryProps) {
     };
   }, [state]);
 
+  const getDaysLeftColor = () => {
+    if (stats.daysLeft <= 0) return "text-critical";
+    if (stats.daysLeft <= 14) return "text-warning";
+    if (stats.daysLeft <= 30) return "text-info";
+    return "text-success";
+  };
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       {/* Overall Progress */}
-      <Card className="bg-slate-900/50 border-slate-800">
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-slate-400">Overall Progress</span>
-            <Target className="h-4 w-4 text-slate-500" />
+      <Card className="bg-surface border-border-subtle">
+        <CardContent className="pt-4 pb-4">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-caption text-text-secondary uppercase tracking-wide">
+              Overall Progress
+            </span>
+            <Target className="h-4 w-4 text-text-tertiary" />
           </div>
-          <div className="text-3xl font-bold mb-2">
-            {stats.progressPercentage}%
-          </div>
-          <Progress
-            value={stats.progressPercentage}
-            className="h-2 bg-slate-800"
-            indicatorClassName="bg-gradient-to-r from-blue-500 to-purple-500"
-          />
-          <div className="flex justify-between mt-2 text-xs text-slate-500">
-            <span>{stats.completedMilestones} completed</span>
-            <span>{stats.totalMilestones} total milestones</span>
+          <div className="flex items-center gap-4">
+            <ProgressRing
+              value={stats.progressPercentage}
+              size={56}
+              strokeWidth={5}
+              color="#5E6AD2"
+              showLabel={false}
+            />
+            <div>
+              <div className="text-display font-bold text-text-primary">
+                {stats.progressPercentage}%
+              </div>
+              <div className="text-caption text-text-tertiary">
+                {stats.completedMilestones}/{stats.totalMilestones} milestones
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
 
       {/* IA Status */}
-      <Card className="bg-slate-900/50 border-slate-800">
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-slate-400">IAs Status</span>
-            <CheckCircle2 className="h-4 w-4 text-slate-500" />
+      <Card className="bg-surface border-border-subtle">
+        <CardContent className="pt-4 pb-4">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-caption text-text-secondary uppercase tracking-wide">
+              IAs Status
+            </span>
+            <CheckCircle2 className="h-4 w-4 text-text-tertiary" />
           </div>
-          <div className="text-3xl font-bold mb-3">
-            {stats.completed}/{state.ias.length}
+          <div className="text-display font-bold text-text-primary mb-2">
+            {stats.completed}
+            <span className="text-text-tertiary">/{state.ias.length}</span>
           </div>
           <div className="flex gap-2">
-            <Badge variant="success" className="text-xs">
+            <Badge variant="success" size="sm">
               {stats.completed} Done
             </Badge>
-            <Badge variant="warning" className="text-xs">
+            <Badge variant="warning" size="sm">
               {stats.inProgress} Active
             </Badge>
-            <Badge variant="secondary" className="text-xs">
+            <Badge variant="secondary" size="sm">
               {stats.notStarted} Pending
             </Badge>
           </div>
@@ -131,39 +148,45 @@ export function ProgressSummary({ state }: ProgressSummaryProps) {
       </Card>
 
       {/* Days Until Deadline */}
-      <Card className="bg-slate-900/50 border-slate-800">
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-slate-400">Master Deadline</span>
-            <Calendar className="h-4 w-4 text-slate-500" />
+      <Card className="bg-surface border-border-subtle">
+        <CardContent className="pt-4 pb-4">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-caption text-text-secondary uppercase tracking-wide">
+              Master Deadline
+            </span>
+            <Calendar className="h-4 w-4 text-text-tertiary" />
           </div>
-          <div className="text-3xl font-bold mb-1">
+          <div
+            className={`text-display font-bold font-mono ${getDaysLeftColor()}`}
+          >
             {stats.daysLeft > 0 ? stats.daysLeft : 0}
           </div>
-          <p className="text-sm text-slate-500">
+          <p className="text-body-sm text-text-secondary">
             {stats.daysLeft > 0 ? "days remaining" : "Deadline passed!"}
           </p>
-          <p className="text-xs text-slate-600 mt-1">
+          <p className="text-caption text-text-tertiary mt-1">
             {formatDate(state.masterDeadline)}
           </p>
         </CardContent>
       </Card>
 
       {/* This Week's Tasks */}
-      <Card className="bg-slate-900/50 border-slate-800">
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-slate-400">This Week</span>
-            <Clock className="h-4 w-4 text-slate-500" />
+      <Card className="bg-surface border-border-subtle">
+        <CardContent className="pt-4 pb-4">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-caption text-text-secondary uppercase tracking-wide">
+              This Week
+            </span>
+            <Clock className="h-4 w-4 text-text-tertiary" />
           </div>
-          <div className="text-3xl font-bold mb-2">
+          <div className="text-display font-bold text-text-primary font-mono">
             {stats.thisWeekTasks.length}
           </div>
-          <p className="text-sm text-slate-500">tasks due</p>
+          <p className="text-body-sm text-text-secondary">tasks due</p>
           {stats.thisWeekTasks.length > 0 && (
-            <div className="mt-2 text-xs text-slate-400 truncate">
+            <p className="text-caption text-text-tertiary mt-1 truncate">
               Next: {stats.thisWeekTasks[0].milestone_name}
-            </div>
+            </p>
           )}
         </CardContent>
       </Card>

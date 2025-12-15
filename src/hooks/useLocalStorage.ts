@@ -1,5 +1,16 @@
 import { useState, useEffect, useCallback } from "react";
-import type { AppState, IA, Milestone } from "../types";
+import type {
+  AppState,
+  IA,
+  Milestone,
+  WorkSession,
+  LearnedMultipliers,
+  DeepWorkSettings,
+  EnergySettings,
+  Blocker,
+  Risk,
+  BlockerSettings,
+} from "../types";
 import { INITIAL_STATE } from "../types";
 
 const STORAGE_KEY = "ib-deadline-manager";
@@ -157,6 +168,286 @@ export function useLocalStorage() {
     localStorage.removeItem(STORAGE_KEY);
   }, []);
 
+  // === TIME TRACKING FUNCTIONS ===
+
+  // Start timer for a milestone
+  const startTimer = useCallback((iaId: string, milestoneId: string) => {
+    setState((prev) => ({
+      ...prev,
+      activeTimer: {
+        milestoneId,
+        iaId,
+        startTime: new Date().toISOString(),
+        accumulatedMinutes: 0,
+      },
+    }));
+  }, []);
+
+  // Pause the active timer
+  const pauseTimer = useCallback(() => {
+    setState((prev) => {
+      if (!prev.activeTimer || prev.activeTimer.pausedAt) return prev;
+
+      const now = new Date();
+      const startTime = new Date(prev.activeTimer.startTime);
+      const sessionMinutes = (now.getTime() - startTime.getTime()) / 60000;
+
+      return {
+        ...prev,
+        activeTimer: {
+          ...prev.activeTimer,
+          pausedAt: now.toISOString(),
+          accumulatedMinutes:
+            prev.activeTimer.accumulatedMinutes + sessionMinutes,
+        },
+      };
+    });
+  }, []);
+
+  // Resume a paused timer
+  const resumeTimer = useCallback(() => {
+    setState((prev) => {
+      if (!prev.activeTimer || !prev.activeTimer.pausedAt) return prev;
+
+      return {
+        ...prev,
+        activeTimer: {
+          ...prev.activeTimer,
+          startTime: new Date().toISOString(),
+          pausedAt: undefined,
+        },
+      };
+    });
+  }, []);
+
+  // Stop timer and log the session
+  const stopTimer = useCallback((note?: string) => {
+    setState((prev) => {
+      if (!prev.activeTimer) return prev;
+
+      const now = new Date();
+      let totalMinutes = prev.activeTimer.accumulatedMinutes;
+
+      // Add current session time if not paused
+      if (!prev.activeTimer.pausedAt) {
+        const startTime = new Date(prev.activeTimer.startTime);
+        totalMinutes += (now.getTime() - startTime.getTime()) / 60000;
+      }
+
+      // Create work session
+      const session: WorkSession = {
+        id: `session-${Date.now()}`,
+        milestoneId: prev.activeTimer.milestoneId,
+        startTime: prev.activeTimer.startTime,
+        endTime: now.toISOString(),
+        duration: Math.round(totalMinutes),
+        note,
+      };
+
+      // Update milestone with new session
+      const newIas = prev.ias.map((ia) => {
+        if (ia.id !== prev.activeTimer!.iaId) return ia;
+
+        return {
+          ...ia,
+          milestones: ia.milestones.map((m) => {
+            if (m.id !== prev.activeTimer!.milestoneId) return m;
+
+            const newSessions = [...(m.workSessions || []), session];
+            const actualHours =
+              newSessions.reduce((sum, s) => sum + s.duration, 0) / 60;
+
+            return {
+              ...m,
+              workSessions: newSessions,
+              actualHours,
+            };
+          }),
+        };
+      });
+
+      return {
+        ...prev,
+        ias: newIas,
+        activeTimer: null,
+        allWorkSessions: [...prev.allWorkSessions, session],
+      };
+    });
+  }, []);
+
+  // Cancel timer without logging
+  const cancelTimer = useCallback(() => {
+    setState((prev) => ({
+      ...prev,
+      activeTimer: null,
+    }));
+  }, []);
+
+  // Manually log hours for a milestone
+  const logManualHours = useCallback(
+    (iaId: string, milestoneId: string, hours: number, note?: string) => {
+      setState((prev) => {
+        const now = new Date();
+        const session: WorkSession = {
+          id: `session-${Date.now()}`,
+          milestoneId,
+          startTime: now.toISOString(),
+          endTime: now.toISOString(),
+          duration: Math.round(hours * 60),
+          note: note || "Manually logged",
+        };
+
+        const newIas = prev.ias.map((ia) => {
+          if (ia.id !== iaId) return ia;
+
+          return {
+            ...ia,
+            milestones: ia.milestones.map((m) => {
+              if (m.id !== milestoneId) return m;
+
+              const newSessions = [...(m.workSessions || []), session];
+              const actualHours =
+                newSessions.reduce((sum, s) => sum + s.duration, 0) / 60;
+
+              return {
+                ...m,
+                workSessions: newSessions,
+                actualHours,
+              };
+            }),
+          };
+        });
+
+        return {
+          ...prev,
+          ias: newIas,
+          allWorkSessions: [...prev.allWorkSessions, session],
+        };
+      });
+    },
+    [],
+  );
+
+  // Update learned multipliers
+  const updateLearnedMultipliers = useCallback(
+    (multipliers: LearnedMultipliers) => {
+      setState((prev) => ({
+        ...prev,
+        learnedMultipliers: multipliers,
+      }));
+    },
+    [],
+  );
+
+  // Update deep work settings
+  const updateDeepWorkSettings = useCallback((settings: DeepWorkSettings) => {
+    setState((prev) => ({
+      ...prev,
+      deepWorkSettings: settings,
+    }));
+  }, []);
+
+  // Update energy settings
+  const updateEnergySettings = useCallback((settings: EnergySettings) => {
+    setState((prev) => ({
+      ...prev,
+      energySettings: settings,
+    }));
+  }, []);
+
+  // === BLOCKER MANAGEMENT ===
+
+  // Add a new blocker
+  const addBlocker = useCallback((blocker: Blocker) => {
+    setState((prev) => ({
+      ...prev,
+      blockers: [...prev.blockers, blocker],
+    }));
+  }, []);
+
+  // Update an existing blocker
+  const updateBlocker = useCallback(
+    (blockerId: string, updates: Partial<Blocker>) => {
+      setState((prev) => ({
+        ...prev,
+        blockers: prev.blockers.map((b) =>
+          b.id === blockerId ? { ...b, ...updates } : b,
+        ),
+      }));
+    },
+    [],
+  );
+
+  // Replace a blocker entirely (for complex updates)
+  const replaceBlocker = useCallback((blocker: Blocker) => {
+    setState((prev) => ({
+      ...prev,
+      blockers: prev.blockers.map((b) => (b.id === blocker.id ? blocker : b)),
+    }));
+  }, []);
+
+  // Remove a blocker
+  const removeBlocker = useCallback((blockerId: string) => {
+    setState((prev) => ({
+      ...prev,
+      blockers: prev.blockers.filter((b) => b.id !== blockerId),
+    }));
+  }, []);
+
+  // Update all blockers (for batch operations like auto-escalation)
+  const setBlockers = useCallback((blockers: Blocker[]) => {
+    setState((prev) => ({
+      ...prev,
+      blockers,
+    }));
+  }, []);
+
+  // === RISK MANAGEMENT ===
+
+  // Add a new risk
+  const addRisk = useCallback((risk: Risk) => {
+    setState((prev) => ({
+      ...prev,
+      risks: [...prev.risks, risk],
+    }));
+  }, []);
+
+  // Update an existing risk
+  const updateRisk = useCallback((riskId: string, updates: Partial<Risk>) => {
+    setState((prev) => ({
+      ...prev,
+      risks: prev.risks.map((r) =>
+        r.id === riskId ? { ...r, ...updates } : r,
+      ),
+    }));
+  }, []);
+
+  // Remove a risk
+  const removeRisk = useCallback((riskId: string) => {
+    setState((prev) => ({
+      ...prev,
+      risks: prev.risks.filter((r) => r.id !== riskId),
+    }));
+  }, []);
+
+  // Dismiss a risk (mark as not relevant)
+  const dismissRisk = useCallback((riskId: string) => {
+    setState((prev) => ({
+      ...prev,
+      risks: prev.risks.map((r) =>
+        r.id === riskId ? { ...r, isDismissed: true } : r,
+      ),
+    }));
+  }, []);
+
+  // Update blocker settings
+  const updateBlockerSettings = useCallback((settings: BlockerSettings) => {
+    setState((prev) => ({
+      ...prev,
+      blockerSettings: settings,
+    }));
+  }, []);
+
   return {
     state,
     setState,
@@ -169,5 +460,27 @@ export function useLocalStorage() {
     setGoogleEventId,
     setLastCalendarSync,
     resetState,
+    // Time tracking
+    startTimer,
+    pauseTimer,
+    resumeTimer,
+    stopTimer,
+    cancelTimer,
+    logManualHours,
+    updateLearnedMultipliers,
+    updateDeepWorkSettings,
+    updateEnergySettings,
+    // Blocker management
+    addBlocker,
+    updateBlocker,
+    replaceBlocker,
+    removeBlocker,
+    setBlockers,
+    // Risk management
+    addRisk,
+    updateRisk,
+    removeRisk,
+    dismissRisk,
+    updateBlockerSettings,
   };
 }

@@ -3,7 +3,13 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import type { AppState } from "../types";
+import { DeepWorkSettings } from "./settings/DeepWorkSettings";
+import { EnergyProfileSettings } from "./settings/EnergyProfileSettings";
+import type {
+  AppState,
+  DeepWorkSettings as DeepWorkSettingsType,
+  EnergySettings as EnergySettingsType,
+} from "../types";
 import { formatDate } from "../lib/utils";
 import {
   isGoogleCalendarConfigured,
@@ -30,6 +36,8 @@ interface SettingsProps {
   onWeeklyHoursChange: (hours: number) => void;
   onCalendarSync: (eventIds: Record<string, string>) => void;
   onLastSyncUpdate: (timestamp: string) => void;
+  onDeepWorkSettingsChange: (settings: DeepWorkSettingsType) => void;
+  onEnergySettingsChange: (settings: EnergySettingsType) => void;
   onReset: () => void;
 }
 
@@ -39,6 +47,8 @@ export function Settings({
   onWeeklyHoursChange,
   onCalendarSync,
   onLastSyncUpdate,
+  onDeepWorkSettingsChange,
+  onEnergySettingsChange,
   onReset,
 }: SettingsProps) {
   const [masterDeadline, setMasterDeadline] = useState(state.masterDeadline);
@@ -100,6 +110,7 @@ export function Settings({
         state.ias,
         state.googleCalendarEventIds,
         (current, total) => setSyncProgress({ current, total }),
+        state.deepWorkSettings,
       );
 
       onCalendarSync(newEventIds);
@@ -127,23 +138,25 @@ export function Settings({
   return (
     <div className="space-y-6">
       {/* Deadline & Hours Settings */}
-      <Card className="bg-slate-900/50 border-slate-800">
+      <Card variant="elevated">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold flex items-center gap-2">
-            <Target className="h-5 w-5 text-slate-400" />
+          <CardTitle className="text-h3 flex items-center gap-2">
+            <Target className="h-5 w-5 text-text-tertiary" />
             Deadline & Time Budget
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Master Deadline */}
           <div className="space-y-2">
-            <label className="text-sm text-slate-400">Master Deadline</label>
+            <label className="text-body-sm text-text-secondary">
+              Master Deadline
+            </label>
             <div className="flex items-center gap-3">
               <Input
                 type="date"
                 value={masterDeadline}
                 onChange={(e) => setMasterDeadline(e.target.value)}
-                className="bg-slate-800 border-slate-700 w-48"
+                className="w-48"
               />
               <Button
                 variant="secondary"
@@ -153,18 +166,18 @@ export function Settings({
               >
                 Update
               </Button>
-              <span className="text-sm text-slate-500">
+              <span className="text-body-sm text-text-tertiary">
                 Currently: {formatDate(state.masterDeadline)}
               </span>
             </div>
-            <p className="text-xs text-slate-500">
+            <p className="text-caption text-text-tertiary">
               All IAs should be completed by this date
             </p>
           </div>
 
           {/* Weekly Hours Budget */}
           <div className="space-y-2">
-            <label className="text-sm text-slate-400">
+            <label className="text-body-sm text-text-secondary">
               Weekly Hours Budget
             </label>
             <div className="flex items-center gap-3">
@@ -175,9 +188,9 @@ export function Settings({
                   max="40"
                   value={weeklyHours}
                   onChange={(e) => setWeeklyHours(e.target.value)}
-                  className="bg-slate-800 border-slate-700 w-24 pr-12"
+                  className="w-24 pr-12"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-body-sm text-text-tertiary">
                   hrs
                 </span>
               </div>
@@ -192,34 +205,46 @@ export function Settings({
               >
                 Update
               </Button>
-              <span className="text-sm text-slate-500">
+              <span className="text-body-sm text-text-tertiary">
                 Currently: {state.weeklyHoursBudget} hours/week
               </span>
             </div>
-            <p className="text-xs text-slate-500">
+            <p className="text-caption text-text-tertiary">
               Realistic time you can dedicate to IAs each week
             </p>
           </div>
         </CardContent>
       </Card>
 
+      {/* Deep Work Settings */}
+      <DeepWorkSettings
+        settings={state.deepWorkSettings}
+        onUpdate={onDeepWorkSettingsChange}
+      />
+
+      {/* Energy Profile Settings */}
+      <EnergyProfileSettings
+        settings={state.energySettings}
+        onUpdate={onEnergySettingsChange}
+      />
+
       {/* Google Calendar Integration */}
-      <Card className="bg-slate-900/50 border-slate-800">
+      <Card variant="elevated">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-slate-400" />
+          <CardTitle className="text-h3 flex items-center gap-2">
+            <Calendar className="h-5 w-5 text-text-tertiary" />
             Google Calendar Sync
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {!isGoogleCalendarConfigured() ? (
-            <div className="flex items-center gap-3 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
-              <AlertCircle className="h-5 w-5 text-yellow-400 shrink-0" />
+            <div className="flex items-center gap-3 p-4 bg-warning/10 border border-warning/20 rounded-lg">
+              <AlertCircle className="h-5 w-5 text-warning shrink-0" />
               <div>
-                <p className="text-sm text-yellow-300">
+                <p className="text-body-sm text-warning">
                   Google Calendar not configured
                 </p>
-                <p className="text-xs text-yellow-400/70 mt-1">
+                <p className="text-caption text-warning/70 mt-1">
                   Add VITE_GOOGLE_CLIENT_ID to your environment variables
                 </p>
               </div>
@@ -231,15 +256,15 @@ export function Settings({
                 <div className="flex items-center gap-3">
                   {googleConnected ? (
                     <>
-                      <CheckCircle2 className="h-5 w-5 text-green-400" />
-                      <span className="text-sm text-green-400">
+                      <CheckCircle2 className="h-5 w-5 text-success" />
+                      <span className="text-body-sm text-success">
                         Connected to Google Calendar
                       </span>
                     </>
                   ) : (
                     <>
-                      <AlertCircle className="h-5 w-5 text-slate-400" />
-                      <span className="text-sm text-slate-400">
+                      <AlertCircle className="h-5 w-5 text-text-tertiary" />
+                      <span className="text-body-sm text-text-tertiary">
                         Not connected
                       </span>
                     </>
@@ -274,11 +299,11 @@ export function Settings({
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-slate-300">
+                      <p className="text-body-sm text-text-secondary">
                         {totalMilestones} milestones to sync
                       </p>
                       {state.lastCalendarSync && (
-                        <p className="text-xs text-slate-500">
+                        <p className="text-caption text-text-tertiary">
                           Last synced: {formatDate(state.lastCalendarSync)}
                         </p>
                       )}
@@ -303,15 +328,16 @@ export function Settings({
                   </div>
 
                   {syncError && (
-                    <div className="flex items-center gap-2 text-sm text-red-400">
+                    <div className="flex items-center gap-2 text-body-sm text-critical">
                       <AlertCircle className="h-4 w-4" />
                       {syncError}
                     </div>
                   )}
 
-                  <p className="text-xs text-slate-500">
+                  <p className="text-caption text-text-tertiary">
                     Creates "IB Deadlines - Kavin" calendar with all milestone
-                    events. Events include reminders 1 day and 1 hour before.
+                    events. Deep work blocks are marked as BUSY and include
+                    prep/decompress buffers.
                   </p>
                 </div>
               )}
@@ -321,9 +347,9 @@ export function Settings({
       </Card>
 
       {/* Danger Zone */}
-      <Card className="bg-slate-900/50 border-red-500/30">
+      <Card className="border-critical/30">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold flex items-center gap-2 text-red-400">
+          <CardTitle className="text-h3 flex items-center gap-2 text-critical">
             <Trash2 className="h-5 w-5" />
             Danger Zone
           </CardTitle>
@@ -333,9 +359,10 @@ export function Settings({
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.15 }}
               className="space-y-3"
             >
-              <p className="text-sm text-red-300">
+              <p className="text-body-sm text-critical">
                 Are you sure? This will delete all your milestones and progress.
                 This action cannot be undone.
               </p>
@@ -355,8 +382,10 @@ export function Settings({
           ) : (
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-300">Reset All Data</p>
-                <p className="text-xs text-slate-500">
+                <p className="text-body-sm text-text-secondary">
+                  Reset All Data
+                </p>
+                <p className="text-caption text-text-tertiary">
                   Clear all milestones and start fresh
                 </p>
               </div>
@@ -364,7 +393,7 @@ export function Settings({
                 variant="outline"
                 size="sm"
                 onClick={() => setShowResetConfirm(true)}
-                className="border-red-500/30 text-red-400 hover:bg-red-500/10"
+                className="border-critical/30 text-critical hover:bg-critical/10"
               >
                 Reset
               </Button>

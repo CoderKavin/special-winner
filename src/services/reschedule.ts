@@ -22,7 +22,6 @@ export interface RescheduleResult {
 export function rescheduleAfterCompletion(
   ia: IA,
   completedMilestoneId: string,
-  _allIAs: IA[],
   masterDeadline: string,
 ): RescheduleResult {
   const milestone = ia.milestones.find((m) => m.id === completedMilestoneId);
@@ -221,7 +220,6 @@ export function rescheduleAfterDeadlineChange(
 export function optimizeIADistribution(
   ias: IA[],
   masterDeadline: string,
-  _weeklyHoursBudget: number,
 ): IA[] {
   const now = new Date();
   const deadline = parseISO(masterDeadline);
