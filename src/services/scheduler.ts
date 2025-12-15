@@ -182,17 +182,45 @@ export function checkScheduleFeasibility(
 
 /**
  * Estimate hours needed for an IA based on its type (before milestones are generated)
+ *
+ * REALISTIC IB IA ESTIMATES:
+ * - Economics Commentary: 800 words, ~6-8 hours total
+ * - Math IA: 12-20 pages, ~15-20 hours total
+ * - Physics IA: ~15-20 hours total
+ * - History IA: 2200 words, ~15-20 hours total
+ * - English IA: ~10-15 hours total (oral + written)
  */
 function estimateIAHours(ia: IA): number {
   const isEconomics = ia.id.startsWith("econ");
 
   if (isEconomics) {
-    // Economics commentaries are shorter
-    return 19; // 3 + 4 + 6 + 4 + 2 hours
+    // Economics commentaries: 800 words each, relatively quick
+    // Research: 1h, Diagram: 1h, Draft: 3h, Revision: 1.5h, Polish: 0.5h = ~7h
+    return 7;
   }
 
-  // Full IAs need more time
-  return 40; // 8 + 5 + 15 + 8 + 4 hours
+  // Subject-specific estimates for full IAs
+  switch (ia.id) {
+    case "math":
+      // Math AA HL: Complex exploration, ~15-20h
+      // Research: 3h, Outline: 2h, Draft: 8h, Revision: 4h, Polish: 2h
+      return 19;
+    case "physics":
+      // Physics HL: Lab work + writeup, ~15-18h
+      // Research: 2h, Planning: 2h, Experiment: 5h, Draft: 5h, Revision: 3h, Polish: 1h
+      return 18;
+    case "history":
+      // History SL: 2200 words, ~12-15h
+      // Research: 4h, Outline: 2h, Draft: 5h, Revision: 3h, Polish: 1h
+      return 15;
+    case "english":
+      // English Lang & Lit SL: ~10-12h
+      // Research: 2h, Outline: 1.5h, Draft: 4h, Revision: 3h, Polish: 1.5h
+      return 12;
+    default:
+      // Default for unknown IAs
+      return 15;
+  }
 }
 
 // ============================================

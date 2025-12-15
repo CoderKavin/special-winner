@@ -1,6 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "../ui/button";
-import { Card, CardContent } from "../ui/card";
 import type { GenerationFeasibility } from "../../services/ai";
 import {
   AlertTriangle,
@@ -8,8 +7,8 @@ import {
   Calendar,
   Clock,
   TrendingUp,
-  CheckCircle,
-  AlertCircle,
+  ChevronRight,
+  Zap,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 
@@ -34,15 +33,20 @@ export function ScheduleFeasibilityModal({
   onIncreaseHours,
   onProceedAnyway,
 }: ScheduleFeasibilityModalProps) {
-  // currentDeadline is available for future use if needed
   void _currentDeadline;
   if (!feasibility || !open) return null;
 
   const shortage = feasibility.totalHoursNeeded - feasibility.availableHours;
   const multiplier =
     feasibility.availableHours > 0
-      ? (feasibility.totalHoursNeeded / feasibility.availableHours).toFixed(1)
-      : "∞";
+      ? feasibility.totalHoursNeeded / feasibility.availableHours
+      : Infinity;
+
+  // Calculate progress bar width
+  const progressPercent = Math.min(
+    (feasibility.availableHours / feasibility.totalHoursNeeded) * 100,
+    100,
+  );
 
   return (
     <AnimatePresence>
@@ -53,7 +57,7 @@ export function ScheduleFeasibilityModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50"
             onClick={() => onOpenChange(false)}
           />
 
@@ -62,140 +66,148 @@ export function ScheduleFeasibilityModal({
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
           >
-            <div className="w-full max-w-lg bg-white dark:bg-surface border border-slate-200 dark:border-border-subtle rounded-2xl shadow-2xl overflow-hidden">
-              {/* Header */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-border-subtle bg-red-50 dark:bg-critical/10">
+            <div className="w-full max-w-md bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl shadow-2xl overflow-hidden">
+              {/* Header with warning gradient */}
+              <div className="relative px-6 py-5 bg-gradient-to-r from-red-500/10 to-orange-500/10 border-b border-[var(--border-subtle)]">
+                <button
+                  onClick={() => onOpenChange(false)}
+                  className="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-[var(--bg-surface-hover)] transition-colors"
+                >
+                  <X className="h-5 w-5 text-[var(--text-tertiary)]" />
+                </button>
+
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-critical/20 flex items-center justify-center">
-                    <AlertTriangle className="h-5 w-5 text-critical" />
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center shadow-lg">
+                    <AlertTriangle className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-semibold text-slate-900 dark:text-text-primary">
-                      Impossible Schedule
+                    <h2 className="text-xl font-semibold text-[var(--text-primary)]">
+                      Schedule Conflict
                     </h2>
-                    <p className="text-sm text-slate-600 dark:text-text-secondary">
-                      The current timeline cannot work
+                    <p className="text-sm text-[var(--text-secondary)]">
+                      Not enough time available
                     </p>
                   </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={() => onOpenChange(false)}
-                >
-                  <X className="h-5 w-5" />
-                </Button>
               </div>
 
               {/* Content */}
-              <div className="p-6 space-y-6">
-                {/* Stats */}
-                <div className="grid grid-cols-2 gap-4">
-                  <Card className="bg-slate-50 dark:bg-surface-hover border-slate-200 dark:border-border-subtle">
-                    <CardContent className="pt-4 pb-4">
-                      <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-text-tertiary mb-1">
-                        <Clock className="h-4 w-4" />
-                        Hours Needed
-                      </div>
-                      <div className="text-2xl font-bold text-slate-900 dark:text-text-primary">
-                        {feasibility.totalHoursNeeded.toFixed(0)}h
-                      </div>
-                    </CardContent>
-                  </Card>
+              <div className="p-6 space-y-5">
+                {/* Visual progress comparison */}
+                <div className="space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-[var(--text-secondary)]">
+                      Time needed vs available
+                    </span>
+                    <span className="font-medium text-red-500">
+                      {shortage.toFixed(0)}h short
+                    </span>
+                  </div>
 
-                  <Card className="bg-slate-50 dark:bg-surface-hover border-slate-200 dark:border-border-subtle">
-                    <CardContent className="pt-4 pb-4">
-                      <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-text-tertiary mb-1">
-                        <Calendar className="h-4 w-4" />
-                        Hours Available
-                      </div>
-                      <div className="text-2xl font-bold text-critical">
-                        {feasibility.availableHours.toFixed(0)}h
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Explanation */}
-                <div className="p-4 bg-red-50 dark:bg-critical/5 border border-red-200 dark:border-critical/20 rounded-xl">
-                  <div className="flex items-start gap-3">
-                    <AlertCircle className="h-5 w-5 text-critical shrink-0 mt-0.5" />
-                    <div className="text-sm text-slate-700 dark:text-text-secondary">
-                      <p className="font-medium text-slate-900 dark:text-text-primary mb-1">
-                        {shortage.toFixed(0)} hours short
-                      </p>
-                      <p>
-                        You would need to work{" "}
-                        <span className="font-semibold text-critical">
-                          {multiplier}x faster
-                        </span>{" "}
-                        than your {currentWeeklyHours}h/week budget allows. This
-                        is physically impossible.
-                      </p>
+                  {/* Progress bar */}
+                  <div className="relative h-8 bg-[var(--bg-surface-hover)] rounded-lg overflow-hidden">
+                    {/* Available (what you have) */}
+                    <div
+                      className="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-lg transition-all duration-500"
+                      style={{ width: `${progressPercent}%` }}
+                    />
+                    {/* Labels */}
+                    <div className="absolute inset-0 flex items-center justify-between px-3">
+                      <span className="text-xs font-medium text-white drop-shadow-sm z-10">
+                        {feasibility.availableHours.toFixed(0)}h available
+                      </span>
+                      <span className="text-xs font-medium text-[var(--text-secondary)]">
+                        {feasibility.totalHoursNeeded.toFixed(0)}h needed
+                      </span>
                     </div>
+                  </div>
+
+                  {/* Speed required callout */}
+                  <div className="flex items-center gap-2 px-3 py-2 bg-red-500/10 rounded-lg">
+                    <Zap className="h-4 w-4 text-red-500" />
+                    <span className="text-sm text-[var(--text-primary)]">
+                      Would require working{" "}
+                      <span className="font-bold text-red-500">
+                        {multiplier.toFixed(1)}x
+                      </span>{" "}
+                      your normal pace
+                    </span>
                   </div>
                 </div>
 
-                {/* IA Breakdown */}
-                <div>
-                  <h3 className="text-sm font-semibold text-slate-700 dark:text-text-secondary mb-3">
-                    Hours by IA
-                  </h3>
-                  <div className="space-y-2">
-                    {feasibility.breakdown.map((item) => (
+                {/* Compact IA breakdown */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-[var(--text-secondary)]">
+                      Hours by IA
+                    </span>
+                    <span className="text-xs text-[var(--text-tertiary)]">
+                      {feasibility.breakdown.length} IAs
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {feasibility.breakdown.slice(0, 4).map((item) => (
                       <div
                         key={item.iaId}
-                        className="flex items-center justify-between text-sm py-2 px-3 bg-slate-50 dark:bg-surface-hover rounded-lg"
+                        className="flex items-center justify-between text-sm py-2 px-3 bg-[var(--bg-surface-hover)] rounded-lg"
                       >
-                        <span className="text-slate-700 dark:text-text-secondary truncate">
-                          {item.iaName}
+                        <span className="text-[var(--text-secondary)] truncate text-xs">
+                          {item.iaName
+                            .replace(" IA", "")
+                            .replace("Commentary ", "")}
                         </span>
-                        <span className="font-mono font-medium text-slate-900 dark:text-text-primary">
-                          {item.hoursNeeded.toFixed(0)}h ({item.weeksNeeded}w)
+                        <span className="font-mono font-medium text-[var(--text-primary)] text-xs ml-2">
+                          {item.hoursNeeded.toFixed(0)}h
                         </span>
                       </div>
                     ))}
                   </div>
+                  {feasibility.breakdown.length > 4 && (
+                    <div className="text-xs text-center text-[var(--text-tertiary)]">
+                      +{feasibility.breakdown.length - 4} more
+                    </div>
+                  )}
                 </div>
 
                 {/* Solutions */}
-                <div className="space-y-3">
-                  <h3 className="text-sm font-semibold text-slate-700 dark:text-text-secondary">
-                    Solutions
-                  </h3>
+                <div className="space-y-2">
+                  <span className="text-sm font-medium text-[var(--text-secondary)]">
+                    Quick fixes
+                  </span>
 
-                  {/* Option 1: Extend Deadline */}
+                  {/* Primary: Extend Deadline */}
                   <button
                     onClick={() => {
                       onExtendDeadline(feasibility.minimumDeadline);
                       onOpenChange(false);
                     }}
-                    className="w-full p-4 text-left bg-emerald-50 dark:bg-success/10 border border-emerald-200 dark:border-success/20 rounded-xl hover:bg-emerald-100 dark:hover:bg-success/15 transition-colors"
+                    className="w-full group p-4 text-left bg-gradient-to-r from-emerald-500/10 to-emerald-500/5 border border-emerald-500/20 rounded-xl hover:from-emerald-500/15 hover:to-emerald-500/10 hover:border-emerald-500/30 transition-all"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-success/20 flex items-center justify-center shrink-0">
-                        <Calendar className="h-5 w-5 text-success" />
+                      <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                        <Calendar className="h-5 w-5 text-emerald-500" />
                       </div>
-                      <div>
-                        <div className="font-medium text-slate-900 dark:text-text-primary">
-                          Extend Deadline
-                        </div>
-                        <div className="text-sm text-slate-600 dark:text-text-secondary">
-                          Move to{" "}
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-[var(--text-primary)]">
+                          Extend to{" "}
                           {format(
                             parseISO(feasibility.minimumDeadline),
-                            "MMMM d, yyyy",
-                          )}{" "}
-                          ({feasibility.weeksNeeded} weeks needed)
+                            "MMM d, yyyy",
+                          )}
+                        </div>
+                        <div className="text-xs text-[var(--text-secondary)]">
+                          {feasibility.weeksNeeded} weeks at{" "}
+                          {currentWeeklyHours}h/week
                         </div>
                       </div>
-                      <CheckCircle className="h-5 w-5 text-success ml-auto shrink-0" />
+                      <ChevronRight className="h-5 w-5 text-[var(--text-tertiary)] group-hover:text-emerald-500 transition-colors" />
                     </div>
                   </button>
 
-                  {/* Option 2: Increase Hours (if reasonable) */}
+                  {/* Secondary: Increase Hours */}
                   {feasibility.suggestedHoursPerWeek &&
                     feasibility.suggestedHoursPerWeek <= 20 && (
                       <button
@@ -203,60 +215,70 @@ export function ScheduleFeasibilityModal({
                           onIncreaseHours(feasibility.suggestedHoursPerWeek!);
                           onOpenChange(false);
                         }}
-                        className="w-full p-4 text-left bg-blue-50 dark:bg-info/10 border border-blue-200 dark:border-info/20 rounded-xl hover:bg-blue-100 dark:hover:bg-info/15 transition-colors"
+                        className="w-full group p-4 text-left bg-[var(--bg-surface-hover)] border border-[var(--border-subtle)] rounded-xl hover:border-[var(--border-emphasis)] transition-all"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-info/20 flex items-center justify-center shrink-0">
-                            <TrendingUp className="h-5 w-5 text-info" />
+                          <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                            <TrendingUp className="h-5 w-5 text-blue-500" />
                           </div>
-                          <div>
-                            <div className="font-medium text-slate-900 dark:text-text-primary">
-                              Increase Weekly Hours
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-[var(--text-primary)]">
+                              Increase to {feasibility.suggestedHoursPerWeek}
+                              h/week
                             </div>
-                            <div className="text-sm text-slate-600 dark:text-text-secondary">
-                              Work {feasibility.suggestedHoursPerWeek}h/week
-                              instead of {currentWeeklyHours}h/week
+                            <div className="text-xs text-[var(--text-secondary)]">
+                              +
+                              {feasibility.suggestedHoursPerWeek -
+                                currentWeeklyHours}
+                              h more per week
                             </div>
                           </div>
+                          <ChevronRight className="h-5 w-5 text-[var(--text-tertiary)] group-hover:text-blue-500 transition-colors" />
                         </div>
                       </button>
                     )}
 
-                  {/* Option 3: Reduce Scope */}
-                  <div className="p-4 bg-slate-50 dark:bg-surface-hover border border-slate-200 dark:border-border-subtle rounded-xl">
+                  {/* Tertiary: Work on fewer IAs */}
+                  <button
+                    onClick={() => onOpenChange(false)}
+                    className="w-full group p-4 text-left bg-[var(--bg-surface-hover)] border border-[var(--border-subtle)] rounded-xl hover:border-[var(--border-emphasis)] transition-all"
+                  >
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-border-emphasis flex items-center justify-center shrink-0">
-                        <AlertTriangle className="h-5 w-5 text-slate-500 dark:text-text-tertiary" />
+                      <div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center">
+                        <Clock className="h-5 w-5 text-orange-500" />
                       </div>
-                      <div>
-                        <div className="font-medium text-slate-900 dark:text-text-primary">
-                          Reduce Scope
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-[var(--text-primary)]">
+                          Prioritize fewer IAs
                         </div>
-                        <div className="text-sm text-slate-600 dark:text-text-secondary">
-                          Complete fewer IAs by the current deadline. Prioritize
-                          the most important ones.
+                        <div className="text-xs text-[var(--text-secondary)]">
+                          Focus on the most urgent ones first
                         </div>
                       </div>
+                      <ChevronRight className="h-5 w-5 text-[var(--text-tertiary)] group-hover:text-orange-500 transition-colors" />
                     </div>
-                  </div>
+                  </button>
                 </div>
               </div>
 
               {/* Footer */}
-              <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200 dark:border-border-subtle bg-slate-50 dark:bg-surface-hover">
-                <Button variant="ghost" onClick={() => onOpenChange(false)}>
+              <div className="flex items-center justify-between px-6 py-4 border-t border-[var(--border-subtle)] bg-[var(--bg-surface-hover)]">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onOpenChange(false)}
+                >
                   Cancel
                 </Button>
-                <Button
-                  variant="outline"
+                <button
                   onClick={() => {
                     onProceedAnyway();
                     onOpenChange(false);
                   }}
-                  className="text-slate-600 dark:text-text-secondary"
+                  className="text-xs text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
                 >
-                  Generate Anyway (Not Recommended)
-                </Button>
+                  Generate anyway
+                </button>
               </div>
             </div>
           </motion.div>
