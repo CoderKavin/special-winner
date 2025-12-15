@@ -475,11 +475,12 @@ function ScreenContextIndicator() {
         return "Viewing Timeline";
       case "settings":
         return "Viewing Settings";
-      case "ia_detail":
+      case "ia_detail": {
         const ia = contextSnapshot?.summary.upcomingMilestones.find(
           (m) => m.iaId === currentView.focusedIAId,
         );
         return ia ? `Viewing ${ia.iaName}` : "Viewing IA Details";
+      }
       default:
         return "Viewing App";
     }

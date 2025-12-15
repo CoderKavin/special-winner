@@ -19,7 +19,7 @@ test.describe("IB Deadline Manager E2E Tests", () => {
       await page.goto("/");
 
       // Check that localStorage is being used
-      const hasStorage = await page.evaluate(() => {
+      await page.evaluate(() => {
         return (
           localStorage.getItem("ib-deadline-manager") !== null ||
           Object.keys(localStorage).some(
@@ -131,13 +131,6 @@ test.describe("IB Deadline Manager E2E Tests", () => {
       await page.goto("/");
       await page.waitForLoadState("networkidle");
 
-      // Look for chat bubble or AI interface
-      const chatBubble = page
-        .locator(
-          '[data-testid="ai-chat"], .ai-chat, button:has-text("AI"), [aria-label*="chat"]',
-        )
-        .first();
-
       // Chat interface should exist somewhere
       await expect(page.locator("body")).toBeVisible();
     });
@@ -170,13 +163,6 @@ test.describe("IB Deadline Manager E2E Tests", () => {
       await page.goto("/");
       await page.waitForLoadState("networkidle");
 
-      // Look for schedule/calendar components
-      const scheduleView = page
-        .locator(
-          '[data-testid="schedule"], .schedule, .calendar, [role="grid"]',
-        )
-        .first();
-
       // App should have some form of schedule display
       await expect(page.locator("body")).toBeVisible();
     });
@@ -187,11 +173,6 @@ test.describe("IB Deadline Manager E2E Tests", () => {
       await page.goto("/");
       await page.waitForLoadState("networkidle");
 
-      // Warnings section should exist
-      const warnings = page.locator(
-        '[data-testid="warnings"], .warnings, [role="alert"]',
-      );
-
       // Check if warnings component is in the DOM
       await expect(page.locator("body")).toBeVisible();
     });
@@ -201,11 +182,6 @@ test.describe("IB Deadline Manager E2E Tests", () => {
     test("should display milestones list", async ({ page }) => {
       await page.goto("/");
       await page.waitForLoadState("networkidle");
-
-      // Look for milestones section
-      const milestones = page.locator(
-        '[data-testid="milestones"], .milestones, .milestone-list',
-      );
 
       await expect(page.locator("body")).toBeVisible();
     });
@@ -220,7 +196,6 @@ test.describe("IB Deadline Manager E2E Tests", () => {
         .first();
 
       if (await milestoneCheckbox.isVisible()) {
-        const initialState = (await milestoneCheckbox.isChecked?.()) ?? false;
         await milestoneCheckbox.click();
         await page.waitForTimeout(300);
       }
@@ -286,7 +261,7 @@ test.describe("IB Deadline Manager E2E Tests", () => {
       await page.waitForTimeout(1000);
 
       // Check localStorage has data
-      const storageData = await page.evaluate(() => {
+      await page.evaluate(() => {
         return Object.keys(localStorage).filter(
           (key) =>
             key.includes("ib") ||
@@ -329,14 +304,6 @@ test.describe("IB Deadline Manager E2E Tests", () => {
 
       // App should still be functional
       await expect(page.locator("body")).toBeVisible();
-
-      // No horizontal scrollbar
-      const hasHorizontalScroll = await page.evaluate(() => {
-        return (
-          document.documentElement.scrollWidth >
-          document.documentElement.clientWidth
-        );
-      });
 
       // Some horizontal scroll may be acceptable, but content should be visible
       await expect(page.locator("body")).toBeVisible();
@@ -392,11 +359,6 @@ test.describe("IB Deadline Manager E2E Tests", () => {
       await page.goto("/");
       await page.waitForLoadState("networkidle");
 
-      // Look for warning fix buttons
-      const fixButtons = page.locator(
-        'button:has-text("Fix"), button:has-text("Apply"), [data-testid*="fix"]',
-      );
-
       // Warnings component should exist in the app
       await expect(page.locator("body")).toBeVisible();
     });
@@ -425,11 +387,6 @@ test.describe("IB Deadline Manager E2E Tests", () => {
     }) => {
       await page.goto("/");
       await page.waitForLoadState("networkidle");
-
-      // Feasibility modal may appear if schedule is infeasible
-      const feasibilityModal = page.locator(
-        '[data-testid="feasibility-modal"], .feasibility-modal, [role="dialog"]:has-text("feasibility")',
-      );
 
       // App should load regardless of feasibility status
       await expect(page.locator("body")).toBeVisible();

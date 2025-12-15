@@ -1,4 +1,3 @@
-/* eslint-disable react-refresh/only-export-components */
 import React, {
   createContext,
   useContext,
@@ -407,7 +406,7 @@ export function AssistantProvider({
                     data: action.params,
                   },
                   description: preview.description,
-                  changes: preview.changes.map((_c) => ({
+                  changes: preview.changes.map(() => ({
                     entityType: "milestone" as const,
                     entityId: (action.params.milestoneId as string) || "",
                     entityName: preview.description,

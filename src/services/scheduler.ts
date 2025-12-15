@@ -355,7 +355,7 @@ export function generateSchedule(
 
       // Allocate hours across weeks
       let remainingHours = hoursNeeded;
-      let startWeek = currentWeekIndex;
+      const startWeek = currentWeekIndex;
       const milestoneWeeks: number[] = [];
 
       while (remainingHours > 0 && currentWeekIndex < weekAllocations.length) {

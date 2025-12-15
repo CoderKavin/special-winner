@@ -167,16 +167,6 @@ function App() {
     return true;
   }, [state.ias, state.masterDeadline, state.weeklyHoursBudget]);
 
-  // Handle generating all plans
-  const handleGenerateAllPlans = useCallback(async () => {
-    // Check feasibility first
-    if (!handleCheckFeasibility()) {
-      return; // Modal will be shown, user must choose an action
-    }
-
-    await executeGenerateAllPlans();
-  }, [handleCheckFeasibility]);
-
   // Execute the actual generation (called after feasibility check passes or user proceeds anyway)
   const executeGenerateAllPlans = useCallback(async () => {
     setIsGeneratingAll(true);
@@ -197,6 +187,16 @@ function App() {
       setIsGeneratingAll(false);
     }
   }, [state.ias, state.masterDeadline, state.weeklyHoursBudget, setMilestones]);
+
+  // Handle generating all plans
+  const handleGenerateAllPlans = useCallback(async () => {
+    // Check feasibility first
+    if (!handleCheckFeasibility()) {
+      return; // Modal will be shown, user must choose an action
+    }
+
+    await executeGenerateAllPlans();
+  }, [handleCheckFeasibility, executeGenerateAllPlans]);
 
   // Handle extending the deadline from feasibility modal
   const handleExtendDeadline = useCallback(
