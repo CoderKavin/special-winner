@@ -5,7 +5,7 @@ import { Button } from "./components/ui/button";
 import { ThemeToggle } from "./components/ui/theme-toggle";
 import { ProgressSummary } from "./components/dashboard/ProgressSummary";
 import { IACard } from "./components/dashboard/IACard";
-import { WarningsPanel } from "./components/dashboard/WarningsPanel";
+import { ActionableWarnings } from "./components/dashboard/ActionableWarnings";
 import { ActiveTimerBanner } from "./components/dashboard/ActiveTimerBanner";
 import { WeeklyHoursWidget } from "./components/dashboard/WeeklyHoursWidget";
 import { LearningInsightsWidget } from "./components/dashboard/LearningInsightsWidget";
@@ -93,6 +93,10 @@ function App() {
   const [isFeasibilityModalOpen, setIsFeasibilityModalOpen] = useState(false);
   const [currentFeasibility, setCurrentFeasibility] =
     useState<GenerationFeasibility | null>(null);
+
+  // Undo state for schedule fixes
+  const [previousState, setPreviousState] = useState<typeof state | null>(null);
+  const [canUndo, setCanUndo] = useState(false);
 
   // Recalculate learned multipliers when milestones change
   useEffect(() => {
@@ -280,6 +284,37 @@ function App() {
     },
     [state.ias, state.masterDeadline, updateIA],
   );
+
+  // Handle applying schedule fixes with undo support
+  const handleApplyScheduleFix = useCallback(
+    (changes: Partial<typeof state>) => {
+      // Save current state for undo
+      setPreviousState({ ...state });
+      setCanUndo(true);
+
+      // Apply changes
+      setState((prev) => ({ ...prev, ...changes }));
+
+      // Auto-clear undo after 5 minutes
+      setTimeout(
+        () => {
+          setCanUndo(false);
+          setPreviousState(null);
+        },
+        5 * 60 * 1000,
+      );
+    },
+    [state, setState],
+  );
+
+  // Handle undo
+  const handleUndo = useCallback(() => {
+    if (previousState) {
+      setState(previousState);
+      setPreviousState(null);
+      setCanUndo(false);
+    }
+  }, [previousState, setState]);
 
   // Handle card click
   const handleCardClick = useCallback((ia: IA) => {
@@ -513,10 +548,12 @@ function App() {
                   {/* Progress Summary */}
                   <ProgressSummary state={state} />
 
-                  {/* Warnings */}
-                  <WarningsPanel
+                  {/* Actionable Warnings */}
+                  <ActionableWarnings
                     state={state}
-                    onViewBlocker={handleViewBlocker}
+                    onApplyFix={handleApplyScheduleFix}
+                    onUndo={handleUndo}
+                    canUndo={canUndo}
                   />
 
                   {/* Blockers & Risks Row */}
