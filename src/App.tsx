@@ -16,6 +16,7 @@ import { TimelineView } from "./components/timeline/TimelineView";
 import { IADetailModal } from "./components/modals/IADetailModal";
 import { BlockerLogModal } from "./components/modals/BlockerLogModal";
 import { BlockerResolveModal } from "./components/modals/BlockerResolveModal";
+import { ScheduleFeasibilityModal } from "./components/modals/ScheduleFeasibilityModal";
 import { Settings } from "./components/Settings";
 import { AssistantProvider } from "./contexts/AssistantContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -25,7 +26,12 @@ import {
   AssistantHeaderButton,
 } from "./components/assistant/AssistantPanel";
 import { useLocalStorage } from "./hooks/useLocalStorage";
-import { generateMilestones, generateAllMilestones } from "./services/ai";
+import {
+  generateMilestones,
+  generateAllMilestones,
+  checkGenerationFeasibility,
+  type GenerationFeasibility,
+} from "./services/ai";
 import {
   rescheduleAfterCompletion,
   rescheduleAfterDeadlineChange,
@@ -83,6 +89,11 @@ function App() {
     useState(false);
   const [selectedBlocker, setSelectedBlocker] = useState<Blocker | null>(null);
 
+  // Schedule feasibility modal state
+  const [isFeasibilityModalOpen, setIsFeasibilityModalOpen] = useState(false);
+  const [currentFeasibility, setCurrentFeasibility] =
+    useState<GenerationFeasibility | null>(null);
+
   // Recalculate learned multipliers when milestones change
   useEffect(() => {
     const hasCompletedMilestonesWithData = state.ias.some((ia) =>
@@ -131,14 +142,45 @@ function App() {
     [state.ias, state.masterDeadline, setMilestones],
   );
 
+  // Check feasibility before generating
+  const handleCheckFeasibility = useCallback(() => {
+    const iasWithoutPlans = state.ias.filter(
+      (ia) => ia.milestones.length === 0,
+    );
+    const feasibility = checkGenerationFeasibility(
+      iasWithoutPlans,
+      state.masterDeadline,
+      state.weeklyHoursBudget,
+    );
+
+    if (!feasibility.canProceed) {
+      setCurrentFeasibility(feasibility);
+      setIsFeasibilityModalOpen(true);
+      return false;
+    }
+
+    return true;
+  }, [state.ias, state.masterDeadline, state.weeklyHoursBudget]);
+
   // Handle generating all plans
   const handleGenerateAllPlans = useCallback(async () => {
+    // Check feasibility first
+    if (!handleCheckFeasibility()) {
+      return; // Modal will be shown, user must choose an action
+    }
+
+    await executeGenerateAllPlans();
+  }, [handleCheckFeasibility]);
+
+  // Execute the actual generation (called after feasibility check passes or user proceeds anyway)
+  const executeGenerateAllPlans = useCallback(async () => {
     setIsGeneratingAll(true);
 
     try {
       const results = await generateAllMilestones(
         state.ias,
         state.masterDeadline,
+        state.weeklyHoursBudget,
       );
 
       results.forEach((milestones, iaId) => {
@@ -149,7 +191,36 @@ function App() {
     } finally {
       setIsGeneratingAll(false);
     }
-  }, [state.ias, state.masterDeadline, setMilestones]);
+  }, [state.ias, state.masterDeadline, state.weeklyHoursBudget, setMilestones]);
+
+  // Handle extending the deadline from feasibility modal
+  const handleExtendDeadline = useCallback(
+    (newDeadline: string) => {
+      setMasterDeadline(newDeadline);
+      // After setting new deadline, trigger generation
+      setTimeout(() => {
+        executeGenerateAllPlans();
+      }, 100);
+    },
+    [setMasterDeadline, executeGenerateAllPlans],
+  );
+
+  // Handle increasing weekly hours from feasibility modal
+  const handleIncreaseHours = useCallback(
+    (newHours: number) => {
+      setWeeklyHoursBudget(newHours);
+      // After setting new hours, trigger generation
+      setTimeout(() => {
+        executeGenerateAllPlans();
+      }, 100);
+    },
+    [setWeeklyHoursBudget, executeGenerateAllPlans],
+  );
+
+  // Handle proceeding anyway despite infeasibility
+  const handleProceedAnyway = useCallback(() => {
+    executeGenerateAllPlans();
+  }, [executeGenerateAllPlans]);
 
   // Handle milestone toggle with rescheduling
   const handleToggleMilestone = useCallback(
@@ -623,6 +694,18 @@ function App() {
             blocker={selectedBlocker}
             ias={state.ias}
             onResolve={handleBlockerResolved}
+          />
+
+          {/* Schedule Feasibility Modal */}
+          <ScheduleFeasibilityModal
+            open={isFeasibilityModalOpen}
+            onOpenChange={setIsFeasibilityModalOpen}
+            feasibility={currentFeasibility}
+            currentDeadline={state.masterDeadline}
+            currentWeeklyHours={state.weeklyHoursBudget}
+            onExtendDeadline={handleExtendDeadline}
+            onIncreaseHours={handleIncreaseHours}
+            onProceedAnyway={handleProceedAnyway}
           />
 
           {/* AI Assistant */}

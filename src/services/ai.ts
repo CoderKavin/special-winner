@@ -1,8 +1,86 @@
 import type { IA, AIGeneratedMilestone, Milestone } from "../types";
 import { generateMilestoneId } from "../lib/utils";
-import { format, addDays, parseISO, differenceInDays } from "date-fns";
+import {
+  format,
+  addDays,
+  parseISO,
+  differenceInDays,
+  addWeeks,
+  startOfWeek,
+} from "date-fns";
+import {
+  checkScheduleFeasibility,
+  detectPhase,
+  sequenceIAs,
+  type ScheduleFeasibility,
+} from "./scheduler";
 
 const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
+
+// ============================================
+// FEASIBILITY CHECK (Call this FIRST)
+// ============================================
+
+export interface GenerationFeasibility extends ScheduleFeasibility {
+  canProceed: boolean;
+  userActionRequired:
+    | "none"
+    | "extend_deadline"
+    | "reduce_scope"
+    | "increase_hours";
+  suggestedDeadline?: string;
+  suggestedHoursPerWeek?: number;
+}
+
+/**
+ * Check if generating milestones is feasible before starting.
+ * Call this BEFORE generateMilestones or generateAllMilestones.
+ */
+export function checkGenerationFeasibility(
+  ias: IA[],
+  masterDeadline: string,
+  weeklyHoursBudget: number,
+): GenerationFeasibility {
+  const feasibility = checkScheduleFeasibility(ias, {
+    weeklyHoursBudget,
+    masterDeadline,
+    bufferMultiplier: 1.5,
+    respectDraftSequence: true,
+    maxIAsPerDay: 2,
+  });
+
+  let userActionRequired: GenerationFeasibility["userActionRequired"] = "none";
+  let suggestedDeadline: string | undefined;
+  let suggestedHoursPerWeek: number | undefined;
+
+  if (!feasibility.isFeasible) {
+    // Calculate what would make it feasible
+    const hoursPerWeekNeeded =
+      feasibility.totalHoursNeeded / feasibility.weeksAvailable;
+
+    if (hoursPerWeekNeeded <= 20) {
+      // Increasing hours is feasible
+      userActionRequired = "increase_hours";
+      suggestedHoursPerWeek = Math.ceil(hoursPerWeekNeeded);
+    } else {
+      // Need to extend deadline
+      userActionRequired = "extend_deadline";
+      suggestedDeadline = feasibility.minimumDeadline;
+    }
+  }
+
+  return {
+    ...feasibility,
+    canProceed: feasibility.isFeasible,
+    userActionRequired,
+    suggestedDeadline,
+    suggestedHoursPerWeek,
+  };
+}
+
+// ============================================
+// IA-SPECIFIC GUIDANCE
+// ============================================
 
 function getIASpecificGuidance(ia: IA): string {
   const isEconomics = ia.id.startsWith("econ");
@@ -58,15 +136,20 @@ For English Lang & Lit SL IA:
   return "";
 }
 
+// ============================================
+// MILESTONE GENERATION
+// ============================================
+
 export async function generateMilestones(
   ia: IA,
   masterDeadline: string,
+  weeklyHoursBudget: number = 6,
 ): Promise<Milestone[]> {
   const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
 
   if (!apiKey) {
     console.warn("No API key found, using fallback milestones");
-    return generateFallbackMilestones(ia, masterDeadline);
+    return generateFallbackMilestones(ia, masterDeadline, weeklyHoursBudget);
   }
 
   const today = format(new Date(), "yyyy-MM-dd");
@@ -130,7 +213,7 @@ Return ONLY valid JSON array, no markdown or other text:
     if (!response.ok) {
       const error = await response.text();
       console.error("Anthropic API error:", error);
-      return generateFallbackMilestones(ia, masterDeadline);
+      return generateFallbackMilestones(ia, masterDeadline, weeklyHoursBudget);
     }
 
     const data = await response.json();
@@ -139,34 +222,71 @@ Return ONLY valid JSON array, no markdown or other text:
     // Parse the JSON response
     const aiMilestones: AIGeneratedMilestone[] = JSON.parse(content);
 
-    // Convert AI milestones to our Milestone format with dates
-    return assignMilestoneDates(ia, aiMilestones, masterDeadline);
+    // Convert AI milestones to our Milestone format with PROPER dates
+    return assignMilestoneDatesWithConstraints(
+      ia,
+      aiMilestones,
+      masterDeadline,
+      weeklyHoursBudget,
+    );
   } catch (error) {
     console.error("Error generating milestones:", error);
-    return generateFallbackMilestones(ia, masterDeadline);
+    return generateFallbackMilestones(ia, masterDeadline, weeklyHoursBudget);
   }
 }
 
-function assignMilestoneDates(
+/**
+ * Assign milestone dates respecting weekly hours budget constraint.
+ * Each milestone is allocated to complete weeks based on hours needed.
+ */
+function assignMilestoneDatesWithConstraints(
   ia: IA,
   aiMilestones: AIGeneratedMilestone[],
   masterDeadline: string,
+  weeklyHoursBudget: number,
 ): Milestone[] {
-  const deadline = parseISO(masterDeadline);
   const now = new Date();
-  const totalDays = differenceInDays(deadline, now);
+  const deadline = parseISO(masterDeadline);
+  const totalWeeks = Math.ceil(differenceInDays(deadline, now) / 7);
 
-  // Timeline distribution percentages
-  const distribution = [0.1, 0.15, 0.4, 0.25, 0.1];
+  // Calculate total hours needed
+  const totalHoursNeeded = aiMilestones.reduce(
+    (sum, m) => sum + m.estimated_hours * 1.5, // 1.5x buffer
+    0,
+  );
 
-  let currentDay = 0;
-  const milestones: Milestone[] = aiMilestones.map((am, index) => {
-    const daysForMilestone = Math.round(totalDays * distribution[index]);
-    const startDate = addDays(now, currentDay);
-    currentDay += daysForMilestone;
-    const milestoneDeadline = addDays(now, currentDay);
+  // Calculate weeks needed for this IA
+  const weeksNeeded = Math.ceil(totalHoursNeeded / weeklyHoursBudget);
 
-    return {
+  // If not enough weeks, compress proportionally (but warn)
+  const weeksAvailable = Math.min(totalWeeks, weeksNeeded);
+  const compressionFactor = weeksAvailable / weeksNeeded;
+
+  let currentWeek = 0;
+  const milestones: Milestone[] = [];
+
+  for (let index = 0; index < aiMilestones.length; index++) {
+    const am = aiMilestones[index];
+    const bufferedHours = am.estimated_hours * 1.5;
+
+    // Calculate how many weeks this milestone needs
+    let weeksForMilestone = Math.ceil(bufferedHours / weeklyHoursBudget);
+
+    // Apply compression if necessary
+    weeksForMilestone = Math.max(
+      1,
+      Math.round(weeksForMilestone * compressionFactor),
+    );
+
+    // Calculate dates
+    const startWeek = startOfWeek(addWeeks(now, currentWeek), {
+      weekStartsOn: 1,
+    });
+    const endWeek = addWeeks(startWeek, weeksForMilestone);
+
+    const phase = detectPhase(am.milestone_name);
+
+    milestones.push({
       id: generateMilestoneId(ia.id, index),
       iaId: ia.id,
       milestone_name: am.milestone_name,
@@ -174,20 +294,27 @@ function assignMilestoneDates(
       estimated_hours: am.estimated_hours,
       buffer_multiplier: 1.5,
       dependencies: am.dependencies,
-      deadline: format(milestoneDeadline, "yyyy-MM-dd"),
-      startDate: format(startDate, "yyyy-MM-dd"),
+      deadline: format(addDays(endWeek, -1), "yyyy-MM-dd"), // End of last day of week
+      startDate: format(startWeek, "yyyy-MM-dd"),
       completed: false,
-      phase: undefined,
+      phase,
       workSessions: [],
-    };
-  });
+    });
+
+    currentWeek += weeksForMilestone;
+  }
 
   return milestones;
 }
 
+// ============================================
+// FALLBACK MILESTONES
+// ============================================
+
 function generateFallbackMilestones(
   ia: IA,
   masterDeadline: string,
+  weeklyHoursBudget: number = 6,
 ): Milestone[] {
   const isEconomics = ia.id.startsWith("econ");
 
@@ -266,23 +393,57 @@ function generateFallbackMilestones(
         },
       ];
 
-  return assignMilestoneDates(ia, fallbackMilestones, masterDeadline);
+  return assignMilestoneDatesWithConstraints(
+    ia,
+    fallbackMilestones,
+    masterDeadline,
+    weeklyHoursBudget,
+  );
+}
+
+// ============================================
+// GENERATE ALL MILESTONES
+// ============================================
+
+export interface GenerateAllResult {
+  milestones: Map<string, Milestone[]>;
+  feasibility: GenerationFeasibility;
+  warnings: string[];
 }
 
 export async function generateAllMilestones(
   ias: IA[],
   masterDeadline: string,
+  weeklyHoursBudget: number = 6,
   onProgress?: (completed: number, total: number) => void,
 ): Promise<Map<string, Milestone[]>> {
   const results = new Map<string, Milestone[]>();
-  const iasToGenerate = ias.filter((ia) => ia.milestones.length === 0);
+
+  // Sequence IAs optimally before generating
+  const sequencedIAs = sequenceIAs(ias);
+  const iasToGenerate = sequencedIAs.filter((ia) => ia.milestones.length === 0);
+
+  // Track cumulative week offset for sequential scheduling
+  let weekOffset = 0;
 
   for (let i = 0; i < iasToGenerate.length; i++) {
     const ia = iasToGenerate[i];
     onProgress?.(i, iasToGenerate.length);
 
-    const milestones = await generateMilestones(ia, masterDeadline);
-    results.set(ia.id, milestones);
+    // Generate milestones for this IA
+    const milestones = await generateMilestones(
+      ia,
+      masterDeadline,
+      weeklyHoursBudget,
+    );
+
+    // Offset the milestones based on previous IAs
+    const offsetMilestones = offsetMilestonesByWeeks(milestones, weekOffset);
+    results.set(ia.id, offsetMilestones);
+
+    // Calculate how many weeks this IA takes
+    const iaWeeks = calculateIAWeeks(offsetMilestones, weeklyHoursBudget);
+    weekOffset += iaWeeks;
 
     // Add a small delay to avoid rate limiting
     if (i < iasToGenerate.length - 1) {
@@ -292,4 +453,34 @@ export async function generateAllMilestones(
 
   onProgress?.(iasToGenerate.length, iasToGenerate.length);
   return results;
+}
+
+/**
+ * Offset all milestone dates by a number of weeks
+ */
+function offsetMilestonesByWeeks(
+  milestones: Milestone[],
+  weeks: number,
+): Milestone[] {
+  if (weeks === 0) return milestones;
+
+  return milestones.map((m) => ({
+    ...m,
+    startDate: format(addWeeks(parseISO(m.startDate), weeks), "yyyy-MM-dd"),
+    deadline: format(addWeeks(parseISO(m.deadline), weeks), "yyyy-MM-dd"),
+  }));
+}
+
+/**
+ * Calculate how many weeks an IA's milestones span
+ */
+function calculateIAWeeks(
+  milestones: Milestone[],
+  weeklyHoursBudget: number,
+): number {
+  const totalHours = milestones.reduce(
+    (sum, m) => sum + m.estimated_hours * m.buffer_multiplier,
+    0,
+  );
+  return Math.ceil(totalHours / weeklyHoursBudget);
 }

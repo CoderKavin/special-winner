@@ -1,79 +1,79 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  darkMode: ["class"],
+  darkMode: ["class", '[class~="dark"]'],
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
-      // Linear-inspired color palette
+      // Linear-inspired color palette using CSS variables for theme switching
       colors: {
-        // Base colors
-        background: "#0D0E11",
+        // Base colors - use CSS variables for theme switching
+        background: "var(--bg-background)",
         surface: {
-          DEFAULT: "#16181D",
-          hover: "#1C1E24",
+          DEFAULT: "var(--bg-surface)",
+          hover: "var(--bg-surface-hover)",
         },
         border: {
-          DEFAULT: "#2B2D31",
-          subtle: "#2B2D31",
-          emphasis: "#3F4248",
+          DEFAULT: "var(--border-subtle)",
+          subtle: "var(--border-subtle)",
+          emphasis: "var(--border-emphasis)",
         },
 
         // Semantic colors
         primary: {
-          DEFAULT: "#5E6AD2",
-          hover: "#6B76DB",
-          foreground: "#FFFFFF",
+          DEFAULT: "var(--color-primary)",
+          hover: "var(--color-primary-hover)",
+          foreground: "var(--color-primary-foreground)",
         },
         secondary: {
-          DEFAULT: "#16181D",
-          foreground: "#E6E8EB",
+          DEFAULT: "var(--bg-surface)",
+          foreground: "var(--text-primary)",
         },
         muted: {
-          DEFAULT: "#16181D",
-          foreground: "#9BA1A6",
+          DEFAULT: "var(--bg-surface)",
+          foreground: "var(--text-secondary)",
         },
         accent: {
-          DEFAULT: "#5E6AD2",
-          foreground: "#FFFFFF",
+          DEFAULT: "var(--color-primary)",
+          foreground: "var(--color-primary-foreground)",
         },
         destructive: {
-          DEFAULT: "#E5484D",
+          DEFAULT: "var(--color-critical)",
           foreground: "#FFFFFF",
         },
         success: {
-          DEFAULT: "#26A269",
+          DEFAULT: "var(--color-success)",
           foreground: "#FFFFFF",
         },
         warning: {
-          DEFAULT: "#FFA500",
+          DEFAULT: "var(--color-warning)",
           foreground: "#000000",
         },
         critical: {
-          DEFAULT: "#E5484D",
+          DEFAULT: "var(--color-critical)",
           foreground: "#FFFFFF",
         },
         info: {
-          DEFAULT: "#4C9AFF",
+          DEFAULT: "var(--color-info)",
           foreground: "#FFFFFF",
         },
 
-        // Text colors
-        foreground: "#E6E8EB",
-        "text-primary": "#E6E8EB",
-        "text-secondary": "#9BA1A6",
-        "text-tertiary": "#5E6772",
-        "text-disabled": "#3F4248",
+        // Text colors - use CSS variables for theme switching
+        foreground: "var(--text-primary)",
+        "text-primary": "var(--text-primary)",
+        "text-secondary": "var(--text-secondary)",
+        "text-tertiary": "var(--text-tertiary)",
+        "text-disabled": "var(--text-disabled)",
 
         // Component colors
-        input: "#2B2D31",
-        ring: "#5E6AD2",
+        input: "var(--border-subtle)",
+        ring: "var(--color-primary)",
         popover: {
-          DEFAULT: "#1C1E24",
-          foreground: "#E6E8EB",
+          DEFAULT: "var(--bg-surface-hover)",
+          foreground: "var(--text-primary)",
         },
         card: {
-          DEFAULT: "#16181D",
-          foreground: "#E6E8EB",
+          DEFAULT: "var(--bg-surface)",
+          foreground: "var(--text-primary)",
         },
 
         // Subject colors

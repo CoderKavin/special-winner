@@ -9,21 +9,19 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
   ({ className, variant = "default", subjectColor, ...props }, ref) => {
     const baseStyles = [
-      "rounded-xl border text-card-foreground",
-      "bg-white dark:bg-surface",
+      "rounded-xl border",
+      "bg-[var(--bg-surface)] text-[var(--text-primary)]",
       "transition-all duration-200 ease-out",
     ];
 
     const variantStyles = {
-      default:
-        "border-slate-200 dark:border-border-subtle shadow-sm dark:shadow-none",
+      default: "border-[var(--border-subtle)] shadow-[var(--shadow-1)]",
       interactive: [
-        "border-slate-200 dark:border-border-subtle shadow-sm dark:shadow-none",
-        "hover:border-slate-300 dark:hover:border-border-emphasis hover:shadow-md dark:hover:shadow-card-hover hover:-translate-y-0.5",
+        "border-[var(--border-subtle)] shadow-[var(--shadow-1)]",
+        "hover:border-[var(--border-emphasis)] hover:shadow-[var(--shadow-2)] hover:-translate-y-0.5",
         "cursor-pointer",
       ].join(" "),
-      elevated:
-        "border-slate-200 dark:border-border-emphasis shadow-md dark:shadow-2",
+      elevated: "border-[var(--border-emphasis)] shadow-[var(--shadow-2)]",
     };
 
     const subjectBorderStyles = subjectColor
@@ -65,7 +63,7 @@ const CardTitle = React.forwardRef<
   <h3
     ref={ref}
     className={cn(
-      "text-lg font-semibold leading-tight tracking-tight text-slate-900 dark:text-text-primary",
+      "text-lg font-semibold leading-tight tracking-tight text-[var(--text-primary)]",
       className,
     )}
     {...props}
@@ -79,7 +77,7 @@ const CardDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn("text-sm text-slate-600 dark:text-text-secondary", className)}
+    className={cn("text-sm text-[var(--text-secondary)]", className)}
     {...props}
   />
 ));
@@ -100,7 +98,7 @@ const CardFooter = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "flex items-center p-5 pt-0 border-t border-slate-200 dark:border-border-subtle mt-4",
+      "flex items-center p-5 pt-0 border-t border-[var(--border-subtle)] mt-4",
       className,
     )}
     {...props}
