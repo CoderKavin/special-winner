@@ -8,7 +8,7 @@
  * - IA sequencing for optimal learning transfer
  */
 
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import {
   checkScheduleFeasibility,
   sequenceIAs,
@@ -17,19 +17,12 @@ import {
 } from "./scheduler";
 import {
   mockAllIAs,
-  mockStateWithMilestones,
   mockImpossibleDeadline,
   mockRealisticDeadline,
   mockFarFutureDeadline,
   createMockMilestonesForIA,
 } from "../test/fixtures";
-import {
-  format,
-  addWeeks,
-  addDays,
-  parseISO,
-  differenceInDays,
-} from "date-fns";
+import { format, addWeeks, parseISO } from "date-fns";
 import type { IA } from "../types";
 
 describe("Scheduler Service", () => {
@@ -269,6 +262,7 @@ describe("Scheduler Service", () => {
         type: "investigation",
         wordCount: 2000,
         status: "not_started",
+        subjectColor: "history",
         milestones: [],
       };
 

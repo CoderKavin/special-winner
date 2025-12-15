@@ -25,6 +25,7 @@ import {
   AssistantTrigger,
   AssistantHeaderButton,
 } from "./components/assistant/AssistantPanel";
+import { AssistantIntegration } from "./components/assistant/AssistantIntegration";
 import { useLocalStorage } from "./hooks/useLocalStorage";
 import {
   generateMilestones,
@@ -467,6 +468,19 @@ function App() {
           view: activeTab as "dashboard" | "timeline" | "settings",
         }}
       >
+        {/* Connect AI assistant to app state */}
+        <AssistantIntegration
+          state={state}
+          updateIA={updateIA}
+          setMasterDeadline={setMasterDeadline}
+          setWeeklyHoursBudget={setWeeklyHoursBudget}
+          addBlocker={addBlocker}
+          replaceBlocker={replaceBlocker}
+          startTimer={startTimer}
+          stopTimer={stopTimer}
+          logManualHours={logManualHours}
+          setState={setState}
+        />
         <div className="min-h-screen bg-white dark:bg-background text-gray-900 dark:text-text-primary transition-colors duration-200">
           {/* Header */}
           <header className="border-b border-gray-200 dark:border-border-subtle bg-white/80 dark:bg-surface/80 backdrop-blur-md sticky top-0 z-40">

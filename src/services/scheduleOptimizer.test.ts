@@ -4,16 +4,14 @@
  * Tests for actionable warning generation and fix application
  */
 
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import {
   analyzeScheduleWarnings,
   applyFix,
   generateOptimizationScenarios,
-  type ScheduleWarning,
   type ScheduleFix,
 } from "./scheduleOptimizer";
 import {
-  mockStateWithMilestones,
   mockStateWithIAs,
   mockImpossibleDeadline,
   mockRealisticDeadline,
@@ -104,7 +102,7 @@ describe("Schedule Optimizer Service", () => {
       it("should detect weeks over budget", () => {
         // Create state with milestones that exceed weekly budget
         const overloadedMilestones = createMockMilestonesForIA("test").map(
-          (m, i) => ({
+          (m) => ({
             ...m,
             estimated_hours: 10, // High hours
             startDate: format(addDays(new Date(), 1), "yyyy-MM-dd"),

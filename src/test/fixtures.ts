@@ -17,6 +17,7 @@ export const mockEconomicsMicroIA: IA = {
   type: "commentary",
   wordCount: 800,
   status: "not_started",
+  subjectColor: "economics",
   milestones: [],
 };
 
@@ -26,6 +27,7 @@ export const mockEconomicsMacroIA: IA = {
   type: "commentary",
   wordCount: 800,
   status: "not_started",
+  subjectColor: "economics",
   milestones: [],
 };
 
@@ -35,6 +37,7 @@ export const mockMathIA: IA = {
   type: "exploration",
   wordCount: 3000,
   status: "not_started",
+  subjectColor: "math",
   milestones: [],
 };
 
@@ -44,6 +47,7 @@ export const mockPhysicsIA: IA = {
   type: "investigation",
   wordCount: 2500,
   status: "not_started",
+  subjectColor: "physics",
   milestones: [],
 };
 
@@ -53,6 +57,7 @@ export const mockHistoryIA: IA = {
   type: "investigation",
   wordCount: 2200,
   status: "not_started",
+  subjectColor: "history",
   milestones: [],
 };
 
@@ -62,6 +67,7 @@ export const mockEnglishIA: IA = {
   type: "analysis",
   wordCount: 1500,
   status: "not_started",
+  subjectColor: "english",
   milestones: [],
 };
 

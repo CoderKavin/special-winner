@@ -20,6 +20,9 @@ import {
   Maximize2,
   Minimize2,
   Eye,
+  Check,
+  XCircle,
+  Zap,
 } from "lucide-react";
 import type { ConversationMessage } from "../../types";
 
@@ -198,6 +201,21 @@ function MessageContent({ content }: { content: string }) {
           );
         }
 
+        // Numbered list items
+        if (/^\d+\.\s/.test(line)) {
+          const match = line.match(/^(\d+)\.\s(.*)$/);
+          if (match) {
+            return (
+              <div key={i} className="flex gap-2 ml-2">
+                <span className="text-slate-400 dark:text-text-tertiary min-w-[1.5rem]">
+                  {match[1]}.
+                </span>
+                <span>{parseMarkdownLine(match[2])}</span>
+              </div>
+            );
+          }
+        }
+
         // Empty lines
         if (line.trim() === "") {
           return <div key={i} className="h-2" />;
@@ -206,6 +224,80 @@ function MessageContent({ content }: { content: string }) {
         return <div key={i}>{parseMarkdownLine(line)}</div>;
       })}
     </>
+  );
+}
+
+// ============================================
+// ACTION CONFIRMATION PANEL
+// ============================================
+
+function ActionConfirmationPanel() {
+  const { state, confirmPendingActions, cancelPendingActions } = useAssistant();
+
+  if (!state.awaitingConfirmation || state.pendingActions.length === 0) {
+    return null;
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 20 }}
+      className="mx-4 mb-3 p-4 bg-amber-50 dark:bg-warning/10 border border-amber-200 dark:border-warning/30 rounded-xl"
+    >
+      <div className="flex items-start gap-3">
+        <div className="w-8 h-8 rounded-full bg-warning/20 flex items-center justify-center shrink-0">
+          <Zap className="h-4 w-4 text-warning" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h4 className="text-sm font-semibold text-amber-800 dark:text-warning mb-2">
+            Confirm Actions
+          </h4>
+          <div className="space-y-2 mb-3">
+            {state.pendingActions.map((preview, index) => (
+              <div
+                key={index}
+                className="text-sm text-amber-700 dark:text-warning/80 flex items-start gap-2"
+              >
+                <CheckCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                <div>
+                  <span className="font-medium">{preview.description}</span>
+                  {preview.warnings && preview.warnings.length > 0 && (
+                    <div className="text-xs text-amber-600 dark:text-warning/60 mt-0.5">
+                      {preview.warnings.join(", ")}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              onClick={confirmPendingActions}
+              disabled={state.isProcessing}
+              className="bg-warning hover:bg-warning/90 text-black"
+            >
+              {state.isProcessing ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-1" />
+              ) : (
+                <Check className="h-4 w-4 mr-1" />
+              )}
+              Confirm
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={cancelPendingActions}
+              disabled={state.isProcessing}
+            >
+              <XCircle className="h-4 w-4 mr-1" />
+              Cancel
+            </Button>
+          </div>
+        </div>
+      </div>
+    </motion.div>
   );
 }
 
@@ -402,6 +494,81 @@ function ScreenContextIndicator() {
 }
 
 // ============================================
+// PROACTIVE NOTIFICATIONS
+// ============================================
+
+function ProactiveNotifications() {
+  const { state, dismissNotification, sendMessage } = useAssistant();
+
+  const activeNotifications = state.notifications.filter((n) => !n.dismissed);
+
+  if (activeNotifications.length === 0) return null;
+
+  return (
+    <div className="px-4 py-2 space-y-2 border-b border-slate-200 dark:border-border-subtle">
+      {activeNotifications.slice(0, 2).map((notification) => (
+        <motion.div
+          key={notification.id}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: 20 }}
+          className={cn(
+            "p-3 rounded-lg flex items-start gap-3",
+            notification.priority === "urgent"
+              ? "bg-critical/10 border border-critical/30"
+              : notification.priority === "high"
+                ? "bg-warning/10 border border-warning/30"
+                : "bg-slate-100 dark:bg-surface-hover border border-slate-200 dark:border-border-subtle",
+          )}
+        >
+          <AlertTriangle
+            className={cn(
+              "h-4 w-4 shrink-0 mt-0.5",
+              notification.priority === "urgent"
+                ? "text-critical"
+                : notification.priority === "high"
+                  ? "text-warning"
+                  : "text-slate-500",
+            )}
+          />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-slate-800 dark:text-text-primary">
+              {notification.title}
+            </p>
+            <p className="text-xs text-slate-600 dark:text-text-secondary mt-0.5">
+              {notification.message}
+            </p>
+            {notification.suggestedActionLabel && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="mt-2 h-7 text-xs"
+                onClick={() => {
+                  if (notification.suggestedAction?.data?.message) {
+                    sendMessage(
+                      notification.suggestedAction.data.message as string,
+                    );
+                  }
+                  dismissNotification(notification.id);
+                }}
+              >
+                {notification.suggestedActionLabel}
+              </Button>
+            )}
+          </div>
+          <button
+            onClick={() => dismissNotification(notification.id)}
+            className="text-slate-400 hover:text-slate-600 dark:hover:text-text-secondary"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
+// ============================================
 // FLOATING CHAT PANEL COMPONENT
 // ============================================
 
@@ -441,8 +608,8 @@ export function AssistantPanel() {
   const messages = state.conversation?.messages || [];
 
   // Floating chat dimensions - LARGER
-  const chatWidth = isExpanded ? "w-[480px]" : "w-[420px]";
-  const chatHeight = isExpanded ? "h-[680px]" : "h-[560px]";
+  const chatWidth = isExpanded ? "w-[520px]" : "w-[440px]";
+  const chatHeight = isExpanded ? "h-[720px]" : "h-[600px]";
 
   return (
     <AnimatePresence>
@@ -512,6 +679,9 @@ export function AssistantPanel() {
           {/* Context Summary */}
           <ContextSummary />
 
+          {/* Proactive Notifications */}
+          <ProactiveNotifications />
+
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {messages.length === 0 ? (
@@ -522,9 +692,9 @@ export function AssistantPanel() {
                 <h3 className="text-lg font-semibold text-slate-800 dark:text-text-secondary mb-2">
                   How can I help?
                 </h3>
-                <p className="text-sm text-slate-500 dark:text-text-tertiary max-w-[260px] leading-relaxed">
-                  I can see what you're viewing. Ask about your progress,
-                  deadlines, or what to work on next.
+                <p className="text-sm text-slate-500 dark:text-text-tertiary max-w-[280px] leading-relaxed">
+                  I can execute actions on your behalf: complete milestones,
+                  reschedule tasks, log time, and optimize your schedule.
                 </p>
               </div>
             ) : (
@@ -550,6 +720,11 @@ export function AssistantPanel() {
             )}
           </div>
 
+          {/* Action Confirmation Panel */}
+          <AnimatePresence>
+            <ActionConfirmationPanel />
+          </AnimatePresence>
+
           {/* Quick Actions */}
           {messages.length === 0 && (
             <QuickActions onSelect={handleQuickAction} />
@@ -565,7 +740,7 @@ export function AssistantPanel() {
                 ref={inputRef}
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Ask me anything..."
+                placeholder="Ask me anything or tell me what to do..."
                 disabled={state.isProcessing}
                 className="flex-1 h-11 text-sm bg-white dark:bg-surface"
               />
@@ -585,7 +760,7 @@ export function AssistantPanel() {
               <kbd className="px-1.5 py-0.5 bg-slate-200 dark:bg-surface rounded text-slate-600 dark:text-text-secondary font-mono">
                 ⌘K
               </kbd>{" "}
-              to toggle
+              to toggle • I can execute actions for you
             </p>
           </form>
 
@@ -622,6 +797,9 @@ export function AssistantTrigger() {
   const hasWarnings =
     contextSnapshot && contextSnapshot.activeWarnings.length > 0;
   const criticalCount = contextSnapshot?.summary.criticalBlockers || 0;
+  const notificationCount = state.notifications.filter(
+    (n) => !n.dismissed,
+  ).length;
 
   return (
     <motion.button
@@ -640,7 +818,7 @@ export function AssistantTrigger() {
       <Sparkles className="h-7 w-7 text-white" />
 
       {/* Notification badge */}
-      {(hasWarnings || criticalCount > 0) && (
+      {(hasWarnings || criticalCount > 0 || notificationCount > 0) && (
         <div
           className={cn(
             "absolute -top-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold",
@@ -649,7 +827,11 @@ export function AssistantTrigger() {
               : "bg-warning text-black",
           )}
         >
-          {criticalCount > 0 ? criticalCount : "!"}
+          {criticalCount > 0
+            ? criticalCount
+            : notificationCount > 0
+              ? notificationCount
+              : "!"}
         </div>
       )}
     </motion.button>

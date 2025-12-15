@@ -8,29 +8,32 @@
  * - Warning detection and fixes
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
-import { useLocalStorage } from '../../hooks/useLocalStorage';
-import { checkGenerationFeasibility } from '../../services/ai';
-import { checkScheduleFeasibility, generateSchedule, sequenceIAs } from '../../services/scheduler';
-import { analyzeScheduleWarnings, applyFix } from '../../services/scheduleOptimizer';
+import { describe, it, expect } from "vitest";
+import { renderHook, act } from "@testing-library/react";
+import { useLocalStorage } from "../../hooks/useLocalStorage";
+import { checkGenerationFeasibility } from "../../services/ai";
+import { generateSchedule, sequenceIAs } from "../../services/scheduler";
+import {
+  analyzeScheduleWarnings,
+  applyFix,
+} from "../../services/scheduleOptimizer";
 import {
   mockAllIAs,
   mockStateWithIAs,
   mockRealisticDeadline,
   mockImpossibleDeadline,
   createMockMilestonesForIA,
-} from '../fixtures';
-import { format, addWeeks, addDays } from 'date-fns';
-import type { AppState, IA, Milestone } from '../../types';
+} from "../fixtures";
+import { format, addWeeks, addDays } from "date-fns";
+import type { AppState } from "../../types";
 
-describe('Integration: Core Workflows', () => {
+describe("Integration: Core Workflows", () => {
   // ============================================
   // WORKFLOW 1: NEW USER SETUP
   // ============================================
 
-  describe('New User Setup Workflow', () => {
-    it('should start with 7 IAs and no milestones', () => {
+  describe("New User Setup Workflow", () => {
+    it("should start with 7 IAs and no milestones", () => {
       const { result } = renderHook(() => useLocalStorage());
 
       // Should have IAs defined
@@ -39,31 +42,31 @@ describe('Integration: Core Workflows', () => {
       // Initially no milestones
       const totalMilestones = result.current.state.ias.reduce(
         (sum, ia) => sum + ia.milestones.length,
-        0
+        0,
       );
       expect(totalMilestones).toBe(0);
     });
 
-    it('should check feasibility before generating plans', () => {
+    it("should check feasibility before generating plans", () => {
       const feasibility = checkGenerationFeasibility(
         mockAllIAs,
         mockRealisticDeadline,
-        6 // 6 hours per week
+        6, // 6 hours per week
       );
 
       expect(feasibility.canProceed).toBe(true);
       expect(feasibility.breakdown.length).toBe(mockAllIAs.length);
     });
 
-    it('should reject impossible timeline upfront', () => {
+    it("should reject impossible timeline upfront", () => {
       const feasibility = checkGenerationFeasibility(
         mockAllIAs,
         mockImpossibleDeadline,
-        6
+        6,
       );
 
       expect(feasibility.canProceed).toBe(false);
-      expect(feasibility.userActionRequired).not.toBe('none');
+      expect(feasibility.userActionRequired).not.toBe("none");
     });
   });
 
@@ -71,8 +74,8 @@ describe('Integration: Core Workflows', () => {
   // WORKFLOW 2: MILESTONE COMPLETION
   // ============================================
 
-  describe('Milestone Completion Workflow', () => {
-    it('should update IA status when milestone completed', () => {
+  describe("Milestone Completion Workflow", () => {
+    it("should update IA status when milestone completed", () => {
       const { result } = renderHook(() => useLocalStorage());
 
       // Set up IA with milestones
@@ -89,15 +92,19 @@ describe('Integration: Core Workflows', () => {
       });
 
       // Check IA status updated
-      const updatedIA = result.current.state.ias.find(ia => ia.id === testIA.id);
-      expect(updatedIA?.status).toBe('in_progress');
+      const updatedIA = result.current.state.ias.find(
+        (ia) => ia.id === testIA.id,
+      );
+      expect(updatedIA?.status).toBe("in_progress");
 
       // Check milestone is marked complete
-      const completedMilestone = updatedIA?.milestones.find(m => m.id === milestones[0].id);
+      const completedMilestone = updatedIA?.milestones.find(
+        (m) => m.id === milestones[0].id,
+      );
       expect(completedMilestone?.completed).toBe(true);
     });
 
-    it('should track completed milestones globally', () => {
+    it("should track completed milestones globally", () => {
       const { result } = renderHook(() => useLocalStorage());
 
       const testIA = mockAllIAs[0];
@@ -111,10 +118,12 @@ describe('Integration: Core Workflows', () => {
         result.current.toggleMilestone(testIA.id, milestones[0].id);
       });
 
-      expect(result.current.state.completedMilestones).toContain(milestones[0].id);
+      expect(result.current.state.completedMilestones).toContain(
+        milestones[0].id,
+      );
     });
 
-    it('should update to completed status when all milestones done', () => {
+    it("should update to completed status when all milestones done", () => {
       const { result } = renderHook(() => useLocalStorage());
 
       const testIA = mockAllIAs[0];
@@ -125,14 +134,16 @@ describe('Integration: Core Workflows', () => {
       });
 
       // Complete all milestones
-      milestones.forEach(m => {
+      milestones.forEach((m) => {
         act(() => {
           result.current.toggleMilestone(testIA.id, m.id);
         });
       });
 
-      const updatedIA = result.current.state.ias.find(ia => ia.id === testIA.id);
-      expect(updatedIA?.status).toBe('completed');
+      const updatedIA = result.current.state.ias.find(
+        (ia) => ia.id === testIA.id,
+      );
+      expect(updatedIA?.status).toBe("completed");
     });
   });
 
@@ -140,8 +151,8 @@ describe('Integration: Core Workflows', () => {
   // WORKFLOW 3: TIME TRACKING
   // ============================================
 
-  describe('Time Tracking Workflow', () => {
-    it('should start and stop timer correctly', () => {
+  describe("Time Tracking Workflow", () => {
+    it("should start and stop timer correctly", () => {
       const { result } = renderHook(() => useLocalStorage());
 
       const testIA = mockAllIAs[0];
@@ -157,18 +168,20 @@ describe('Integration: Core Workflows', () => {
       });
 
       expect(result.current.state.activeTimer).not.toBeNull();
-      expect(result.current.state.activeTimer?.milestoneId).toBe(milestones[0].id);
+      expect(result.current.state.activeTimer?.milestoneId).toBe(
+        milestones[0].id,
+      );
 
       // Stop timer
       act(() => {
-        result.current.stopTimer('Test session');
+        result.current.stopTimer("Test session");
       });
 
       expect(result.current.state.activeTimer).toBeNull();
       expect(result.current.state.allWorkSessions.length).toBeGreaterThan(0);
     });
 
-    it('should pause and resume timer', () => {
+    it("should pause and resume timer", () => {
       const { result } = renderHook(() => useLocalStorage());
 
       const testIA = mockAllIAs[0];
@@ -197,7 +210,7 @@ describe('Integration: Core Workflows', () => {
       expect(result.current.state.activeTimer?.pausedAt).toBeUndefined();
     });
 
-    it('should log manual hours correctly', () => {
+    it("should log manual hours correctly", () => {
       const { result } = renderHook(() => useLocalStorage());
 
       const testIA = mockAllIAs[0];
@@ -209,12 +222,17 @@ describe('Integration: Core Workflows', () => {
 
       // Log manual hours
       act(() => {
-        result.current.logManualHours(testIA.id, milestones[0].id, 2.5, 'Manual entry');
+        result.current.logManualHours(
+          testIA.id,
+          milestones[0].id,
+          2.5,
+          "Manual entry",
+        );
       });
 
       const updatedMilestone = result.current.state.ias
-        .find(ia => ia.id === testIA.id)
-        ?.milestones.find(m => m.id === milestones[0].id);
+        .find((ia) => ia.id === testIA.id)
+        ?.milestones.find((m) => m.id === milestones[0].id);
 
       expect(updatedMilestone?.actualHours).toBe(2.5);
       expect(updatedMilestone?.workSessions?.length).toBe(1);
@@ -225,8 +243,8 @@ describe('Integration: Core Workflows', () => {
   // WORKFLOW 4: SCHEDULE WARNINGS AND FIXES
   // ============================================
 
-  describe('Schedule Warning and Fix Workflow', () => {
-    it('should detect warnings and provide fixes', () => {
+  describe("Schedule Warning and Fix Workflow", () => {
+    it("should detect warnings and provide fixes", () => {
       const state: AppState = {
         ...mockStateWithIAs,
         masterDeadline: mockImpossibleDeadline,
@@ -236,20 +254,24 @@ describe('Integration: Core Workflows', () => {
 
       expect(warnings.length).toBeGreaterThan(0);
 
-      const criticalWarning = warnings.find(w => w.severity === 'critical');
+      const criticalWarning = warnings.find((w) => w.severity === "critical");
       expect(criticalWarning).toBeDefined();
       expect(criticalWarning?.fixes.length).toBeGreaterThan(0);
     });
 
-    it('should apply deadline extension fix', () => {
+    it("should apply deadline extension fix", () => {
       const state: AppState = {
         ...mockStateWithIAs,
         masterDeadline: mockImpossibleDeadline,
       };
 
       const warnings = analyzeScheduleWarnings(state);
-      const deadlineWarning = warnings.find(w => w.type === 'deadline_impossible');
-      const extendFix = deadlineWarning?.fixes.find(f => f.type === 'extend_deadline');
+      const deadlineWarning = warnings.find(
+        (w) => w.type === "deadline_impossible",
+      );
+      const extendFix = deadlineWarning?.fixes.find(
+        (f) => f.type === "extend_deadline",
+      );
 
       if (extendFix) {
         const { newState, result } = applyFix(state, extendFix);
@@ -259,7 +281,7 @@ describe('Integration: Core Workflows', () => {
       }
     });
 
-    it('should apply hours increase fix', () => {
+    it("should apply hours increase fix", () => {
       const state: AppState = {
         ...mockStateWithIAs,
         masterDeadline: mockImpossibleDeadline,
@@ -267,8 +289,12 @@ describe('Integration: Core Workflows', () => {
       };
 
       const warnings = analyzeScheduleWarnings(state);
-      const deadlineWarning = warnings.find(w => w.type === 'deadline_impossible');
-      const hoursFix = deadlineWarning?.fixes.find(f => f.type === 'increase_hours');
+      const deadlineWarning = warnings.find(
+        (w) => w.type === "deadline_impossible",
+      );
+      const hoursFix = deadlineWarning?.fixes.find(
+        (f) => f.type === "increase_hours",
+      );
 
       if (hoursFix) {
         const { newState, result } = applyFix(state, hoursFix);
@@ -284,20 +310,20 @@ describe('Integration: Core Workflows', () => {
   // WORKFLOW 5: IA SEQUENCING
   // ============================================
 
-  describe('IA Sequencing Workflow', () => {
-    it('should sequence IAs optimally for learning transfer', () => {
+  describe("IA Sequencing Workflow", () => {
+    it("should sequence IAs optimally for learning transfer", () => {
       const sequenced = sequenceIAs(mockAllIAs);
 
       // Economics cluster should be together
-      const econIAs = sequenced.filter(ia => ia.id.startsWith('econ'));
+      const econIAs = sequenced.filter((ia) => ia.id.startsWith("econ"));
       expect(econIAs.length).toBe(3);
 
       // All IAs should be present
       expect(sequenced.length).toBe(mockAllIAs.length);
     });
 
-    it('should maintain sequencing through schedule generation', () => {
-      const iasWithMilestones = mockAllIAs.map(ia => ({
+    it("should maintain sequencing through schedule generation", () => {
+      const iasWithMilestones = mockAllIAs.map((ia) => ({
         ...ia,
         milestones: createMockMilestonesForIA(ia.id),
       }));
@@ -319,11 +345,11 @@ describe('Integration: Core Workflows', () => {
   // WORKFLOW 6: DEADLINE MANAGEMENT
   // ============================================
 
-  describe('Deadline Management Workflow', () => {
-    it('should update master deadline', () => {
+  describe("Deadline Management Workflow", () => {
+    it("should update master deadline", () => {
       const { result } = renderHook(() => useLocalStorage());
 
-      const newDeadline = format(addWeeks(new Date(), 30), 'yyyy-MM-dd');
+      const newDeadline = format(addWeeks(new Date(), 30), "yyyy-MM-dd");
 
       act(() => {
         result.current.setMasterDeadline(newDeadline);
@@ -332,7 +358,7 @@ describe('Integration: Core Workflows', () => {
       expect(result.current.state.masterDeadline).toBe(newDeadline);
     });
 
-    it('should update weekly hours budget', () => {
+    it("should update weekly hours budget", () => {
       const { result } = renderHook(() => useLocalStorage());
 
       act(() => {
@@ -342,12 +368,20 @@ describe('Integration: Core Workflows', () => {
       expect(result.current.state.weeklyHoursBudget).toBe(10);
     });
 
-    it('should recalculate feasibility after deadline change', () => {
-      const shortDeadline = format(addDays(new Date(), 7), 'yyyy-MM-dd');
-      const longDeadline = format(addWeeks(new Date(), 52), 'yyyy-MM-dd');
+    it("should recalculate feasibility after deadline change", () => {
+      const shortDeadline = format(addDays(new Date(), 7), "yyyy-MM-dd");
+      const longDeadline = format(addWeeks(new Date(), 52), "yyyy-MM-dd");
 
-      const shortFeasibility = checkGenerationFeasibility(mockAllIAs, shortDeadline, 6);
-      const longFeasibility = checkGenerationFeasibility(mockAllIAs, longDeadline, 6);
+      const shortFeasibility = checkGenerationFeasibility(
+        mockAllIAs,
+        shortDeadline,
+        6,
+      );
+      const longFeasibility = checkGenerationFeasibility(
+        mockAllIAs,
+        longDeadline,
+        6,
+      );
 
       expect(shortFeasibility.isFeasible).toBe(false);
       expect(longFeasibility.isFeasible).toBe(true);
@@ -358,8 +392,8 @@ describe('Integration: Core Workflows', () => {
   // WORKFLOW 7: DATA PERSISTENCE
   // ============================================
 
-  describe('Data Persistence Workflow', () => {
-    it('should reset state to initial values', () => {
+  describe("Data Persistence Workflow", () => {
+    it("should reset state to initial values", () => {
       const { result } = renderHook(() => useLocalStorage());
 
       // Make some changes
@@ -376,7 +410,7 @@ describe('Integration: Core Workflows', () => {
       expect(result.current.state.weeklyHoursBudget).toBe(6);
     });
 
-    it('should preserve IA data through state updates', () => {
+    it("should preserve IA data through state updates", () => {
       const { result } = renderHook(() => useLocalStorage());
 
       const testIA = mockAllIAs[0];
@@ -393,7 +427,7 @@ describe('Integration: Core Workflows', () => {
       });
 
       // Milestones should still be there
-      const ia = result.current.state.ias.find(i => i.id === testIA.id);
+      const ia = result.current.state.ias.find((i) => i.id === testIA.id);
       expect(ia?.milestones.length).toBe(5);
     });
   });
